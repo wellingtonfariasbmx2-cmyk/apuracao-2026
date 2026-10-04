@@ -126,7 +126,13 @@
     display: inline-block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
     border: 1px solid var(--line); border-radius: 99px; padding: 2px 7px; margin-left: 6px; color: var(--amber);
   }
-  .mapwrap { margin-top: 22px; }
+  .mapwrap { margin-top: 8px; }
+  @media (max-width: 720px) {
+    .mapwrap { margin-top: 4px; }
+    #brmap { max-height: 58vw; }
+    .mapcard { left: 8px; right: 8px; bottom: 8px; max-width: none; }
+    .mapcard b { font-size: 18px; }
+  }
   .stage { position: relative; margin-top: 10px; }
   #brmap { width: 100%; height: auto; display: block; }
   #brmap path { fill: var(--track); stroke: var(--bg); stroke-width: 1.4; cursor: pointer; transition: fill .35s ease; }
@@ -192,7 +198,6 @@
     <div class="tabs" id="tabs"></div>
     <select id="uf" aria-label="Estado"></select>
   </div>
-  <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
 <div class="mapwrap" id="mapwrap">
   <div class="kicker">Quem lidera em cada estado</div>
   <div class="stage">
@@ -206,7 +211,9 @@
 
   <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
   <div class="list" id="list"></div>
-  </div>
+  
+  <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
+</div>
   <footer>
     Fonte: arquivos JSON públicos do Tribunal Superior Eleitoral
     (<a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">resultados.tse.jus.br</a>),
