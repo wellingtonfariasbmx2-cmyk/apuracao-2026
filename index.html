@@ -146,7 +146,7 @@
   .mapcard span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 99px; margin-right: 6px; }
-  .faltam { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; width: 100%; margin-top: 8px; }
+  .regiao { width: 100%; margin-top: 12px; } .rh { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--cyan); font-weight: 650; margin-bottom: 6px; } .rh em { font-style: normal; color: var(--muted); letter-spacing: 0; text-transform: none; font-weight: 500; } .faltam { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; width: 100%; }
   .faltam span { font-size: 12px; color: var(--muted); }
   .faltam b { color: var(--ink); font-weight: 650; }
   footer {
@@ -521,11 +521,22 @@ async function mapa(){
   }));
   const partes = {};
   Object.values(LIDER).forEach(i => { if (i.partido) partes[i.partido] = i.cor; });
+  const REGIOES = [
+    ["Norte", ["ac","ap","am","pa","ro","rr","to"]],
+    ["Nordeste", ["al","ba","ce","ma","pb","pe","pi","rn","se"]],
+    ["Centro-Oeste", ["df","go","mt","ms"]],
+    ["Sudeste", ["es","mg","rj","sp"]],
+    ["Sul", ["pr","rs","sc"]]
+  ];
   document.getElementById("legend").innerHTML = Object.entries(partes).map(([p,c]) => `<span><i style="background:${c}"></i>${p}</span>`).join("")
-    + '<div class="faltam">' + UFS.map(uf => {
-        const i = LIDER[uf] || {};
-        return `<span><b>${uf.toUpperCase()}</b> ${i.faltam != null ? fmt(i.faltam) : "—"}</span>`;
-      }).join("") + '</div>';
+    + REGIOES.map(([nome, ufs]) => {
+        const itens = ufs.map(uf => {
+          const i = LIDER[uf] || {};
+          return `<span><b>${uf.toUpperCase()}</b> ${i.faltam != null ? fmt(i.faltam) : "—"}</span>`;
+        }).join("");
+        const soma = ufs.reduce((n, uf) => n + ((LIDER[uf] && LIDER[uf].faltam) || 0), 0);
+        return `<div class="regiao"><div class="rh">${nome} <em>faltam ${fmt(soma)}</em></div><div class="faltam">${itens}</div></div>`;
+      }).join("");
   if (!LIDER[ufMapa] || !LIDER[ufMapa].votos) {
     const algum = Object.entries(LIDER).find(([,i]) => i.votos);
     if (algum) ufMapa = algum[0];
