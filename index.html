@@ -127,21 +127,14 @@
     border: 1px solid var(--line); border-radius: 99px; padding: 2px 7px; margin-left: 6px; color: var(--amber);
   }
   .mapwrap { margin-top: 8px; }
-  @media (max-width: 720px) {
-    .mapwrap { margin-top: 4px; }
-    #brmap { max-height: 58vw; }
-    .mapcard { left: 8px; right: 8px; bottom: 8px; max-width: none; }
-    .mapcard b { font-size: 18px; }
-  }
   .stage { position: relative; margin-top: 10px; }
   #brmap { width: 100%; height: auto; display: block; }
   #brmap path { fill: var(--track); stroke: var(--bg); stroke-width: 1.4; cursor: pointer; transition: fill .35s ease; }
   #brmap path.on { stroke: var(--ink); stroke-width: 2.4; }
   #brmap .uflab { font: 600 11px Outfit, sans-serif; fill: #fff; text-anchor: middle; dominant-baseline: middle; pointer-events: none; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 3px; }
   .mapcard {
-    position: absolute; left: 12px; bottom: 12px; max-width: min(280px, 70%);
-    background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line);
-    border-radius: 14px; padding: 10px 12px; backdrop-filter: blur(8px);
+    margin-top: 10px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 14px; padding: 10px 12px;
   }
   .mapcard b { display: block; font-family: Fraunces, serif; font-size: 22px; line-height: 1; }
   .mapcard span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
