@@ -98,6 +98,11 @@
   .banner span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
   .banner.eleito { border-color: var(--cyan); }
   .banner.turno { border-color: var(--amber); }
+  .analise { margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--paper); }
+  .analise .k { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); font-weight: 650; }
+  .analise h2 { margin: 4px 0 8px; font-family: Fraunces, serif; font-size: clamp(22px, 4vw, 30px); font-weight: 520; line-height: 1.05; }
+  .analise p { margin: 0 0 8px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .analise b { color: var(--ink); font-weight: 650; }
   .list { display: flex; flex-direction: column; gap: 10px; }
   .cand {
     display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center;
@@ -221,6 +226,7 @@
 </div>
 
   <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
+  <div class="analise" id="analise"><div class="k">Leitura do sistema</div><h2>Calculando com o que já entrou</h2><p>Usa votos, comparecimento e urnas que faltam. Não é pesquisa.</p></div>
   <div class="list" id="list"></div>
   
   <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
@@ -295,6 +301,58 @@ function foto(c, cand){
   return `${TSE}/oficial/ele2026/${c.fotoEle}/fotos/${uf}/${cand.sqcand}.jpeg`;
 }
 
+
+function analise(data, lista){
+  const box = document.getElementById("analise");
+  const e = data.e || {};
+  const v = data.v || {};
+  const validos = num(v.vv);
+  const apurados = num(e.est);
+  const faltamEle = num(e.esnt);
+  const comp = apurados ? num(e.c) / apurados : 0;
+  const validosPorVoto = num(v.tv) ? validos / num(v.tv) : 0;
+  const resto = Math.round(faltamEle * comp * validosPorVoto);
+  const a = lista[0];
+  const b = lista[1];
+  if (!a || !validos || !resto) {
+    box.innerHTML = '<div class="k">Leitura do sistema</div><h2>Ainda sem base para projetar</h2><p>Entra quando houver votos válidos e eleitorado pendente.</p>';
+    return;
+  }
+  const totalProj = validos + resto;
+  const precisa = 0.5 * totalProj - a.votos;
+  const fatia = resto ? precisa / resto : 0;
+  const ritmo = (a.votos + resto * (a.votos / validos)) / totalProj * 100;
+  const ritmoB = b ? (b.votos + resto * (b.votos / validos)) / totalProj * 100 : 0;
+  let geo = "";
+  if (cargoAtual.id === "pres") {
+    let ra = 0, rb = 0, rr = 0, cov = 0;
+    UFS.forEach(uf => {
+      const st = EST[uf];
+      if (!st || !st.resto) return;
+      cov += st.resto;
+      ra += st.resto * (st.a / (st.validos || 1));
+      rb += st.resto * ((st.b || 0) / (st.validos || 1));
+      rr += st.resto;
+    });
+    if (rr > resto * 0.5) {
+      const pa = (a.votos + ra) / (validos + rr) * 100;
+      const pb = b ? (b.votos + rb) / (validos + rr) * 100 : 0;
+      geo = ` Se o que falta em cada estado repetir o placar daquele estado, ${a.nome} fecha em ${pa.toFixed(1).replace(".",",")}% e ${b ? b.nome : "o segundo"} em ${pb.toFixed(1).replace(".",",")}%.`;
+    }
+  }
+  let titulo, texto;
+  if (fatia <= 0) {
+    titulo = a.nome + " já não perde o 1º turno";
+    texto = `Mesmo com zero votos no que falta, fica acima de 50% dos válidos. Faltam cerca de ${fmt(resto)} votos válidos, estimados pelo comparecimento já visto.`;
+  } else if (fatia >= 1) {
+    titulo = "1º turno já não fecha para " + a.nome;
+    texto = `Nem com todos os cerca de ${fmt(resto)} votos válidos que faltam ele passa de 50%.`;
+  } else {
+    titulo = "No ritmo atual, " + a.nome + " termina na frente";
+    texto = `Projeção se o resto do país votar como o que já entrou: ${a.nome} ${ritmo.toFixed(1).replace(".",",")}%${b ? " e " + b.nome + " " + ritmoB.toFixed(1).replace(".",",") + "%" : ""}. Ainda faltam cerca de ${fmt(resto)} votos válidos (${pct(faltamEle && num(e.te) ? faltamEle / num(e.te) * 100 : 0)} do eleitorado). Para cair abaixo de 50% e ir ao 2º turno, ${a.nome} precisaria ficar com menos de ${(fatia*100).toFixed(1).replace(".",",")}% do que falta.`;
+  }
+  box.innerHTML = `<div class="k">Leitura do sistema · não é o TSE</div><h2>${titulo}</h2><p>${texto}${geo} Comparecimento usado: ${pct(comp*100)}. Válidos sobre votos: ${pct(validosPorVoto*100)}.</p>`;
+}
 function candidatos(data){
   const out = [];
   const carg = (data.carg || [])[0];
@@ -398,9 +456,15 @@ function render(data){
       </div>
     </article>`;
   }).join("") || "<div class='note'>Ainda sem candidatos neste arquivo.</div>";
+  ultimo = data;
+  ultimaLista = lista;
+  analise(data, lista);
 }
 
 const LIDER = {};
+const EST = {};
+let ultimo = null;
+let ultimaLista = [];
 let ufMapa = "sp";
 function pintar(uf){
   const info = LIDER[uf] || {};
@@ -437,6 +501,12 @@ async function mapa(){
       const path = document.getElementById("uf-" + uf);
       const faltam = num(s.snt);
       const total = num(s.ts);
+      const ee = data.e || {};
+      const vv = data.v || {};
+      const tops = candidatos(data);
+      const ap = num(ee.est) || 1;
+      const restoUf = Math.round(num(ee.esnt) * (num(ee.c) / ap) * (num(vv.tv) ? num(vv.vv) / num(vv.tv) : 0));
+      EST[uf] = {resto: restoUf, validos: num(vv.vv) || 1, a: tops[0] ? tops[0].votos : 0, b: tops[1] ? tops[1].votos : 0};
       const lab = document.querySelector('#brmap text[data-uf="'+uf+'"]');
       if (lab) lab.textContent = uf.toUpperCase() + " " + (faltam ? fmt(faltam) : "0");
       if (!l || !l.votos) {
@@ -461,6 +531,7 @@ async function mapa(){
     if (algum) ufMapa = algum[0];
   }
   pintar(ufMapa);
+  if (ultimo && cargoAtual.id === "pres") analise(ultimo, ultimaLista);
 }
 
 async function carregar(){
