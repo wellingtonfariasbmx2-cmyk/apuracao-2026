@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08080a" />
+<title>Apuração 2026 · TSE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@380;500;620&display=swap" rel="stylesheet" />
+<style>
+  :root, [data-tema="escuro"] {
+    --bg: #08080a;
+    --paper: #141418;
+    --line: rgba(243,238,230,.14);
+    --ink: #f3eee6;
+    --muted: #a39b90;
+    --cyan: #3ef0dc;
+    --amber: #e8a54b;
+    --track: #26262e;
+    --stat: rgba(20,20,24,.9);
+    --chip: #111;
+    --glow1: rgba(62,240,220,.08);
+    --glow2: rgba(232,165,75,.07);
+    color-scheme: dark;
+  }
+  [data-tema="claro"] {
+    --bg: #f3eee6;
+    --paper: #fffaf4;
+    --line: rgba(28,22,18,.12);
+    --ink: #1c1612;
+    --muted: #6f675f;
+    --cyan: #0f766e;
+    --amber: #b45309;
+    --track: #e7dfd4;
+    --stat: #fffaf4;
+    --chip: #1c1612;
+    --glow1: rgba(15,118,110,.08);
+    --glow2: rgba(194,65,12,.06);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: Outfit, sans-serif;
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 420px at 10% -10%, var(--glow1), transparent 55%),
+      radial-gradient(700px 380px at 100% 0%, var(--glow2), transparent 50%),
+      var(--bg);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 18px 16px calc(36px + env(safe-area-inset-bottom)); }
+  .headrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  button.tema {
+    flex: 0 0 auto; min-height: 40px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink); font: 620 13px Outfit, sans-serif;
+    padding: 0 14px; cursor: pointer;
+  }
+  header.top { display: block; }
+  .kicker {
+    letter-spacing: .18em; text-transform: uppercase; font-size: 11px; color: var(--cyan); font-weight: 620;
+  }
+  h1 {
+    font-family: Fraunces, serif; font-weight: 520; font-size: clamp(40px, 7vw, 72px);
+    line-height: .9; margin: 8px 0 0; letter-spacing: -.03em;
+  }
+  h1 em { font-style: italic; color: var(--amber); }
+  .meta { color: var(--muted); font-size: 13px; text-align: right; line-height: 1.45; }
+  .meta b { color: var(--ink); font-weight: 620; }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 22px 0 18px;
+  }
+  .stat {
+    border: 1px solid var(--line); background: var(--stat); padding: 12px 14px; border-radius: 14px;
+  }
+  .stat span { display: block; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .stat strong { display: block; margin-top: 4px; font-family: Fraunces, serif; font-size: 26px; font-weight: 520; }
+  .bartrack { height: 6px; background: var(--track); border-radius: 99px; margin-top: 14px; overflow: hidden; }
+  .barfill { height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), #9cf7ea); border-radius: 99px; transition: width .6s ease; }
+  .controls {
+    display: flex; gap: 8px; align-items: center; margin: 8px 0 16px;
+    position: sticky; top: 0; z-index: 4; background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px); padding: 8px 0;
+  }
+  .tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  button.tab, select {
+    background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 999px;
+    padding: 10px 14px; font: 500 14px Outfit, sans-serif; cursor: pointer; min-height: 42px;
+  }
+  button.tab { flex: 0 0 auto; }
+  button.tab.on { background: var(--chip); color: var(--bg); border-color: var(--chip); }
+  select { background: var(--paper); max-width: 100%; }
+  .banner {
+    margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--paper);
+  }
+  .banner b { display: block; font-family: Fraunces, serif; font-size: clamp(22px, 4vw, 34px); font-weight: 520; line-height: 1.05; }
+  .banner span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+  .banner.eleito { border-color: var(--cyan); }
+  .banner.turno { border-color: var(--amber); }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .cand {
+    display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px;
+  }
+  .cand img, .ph {
+    width: 56px; height: 72px; object-fit: cover; object-position: top; border-radius: 10px; background: var(--track);
+  }
+  .ph { display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+  .who { min-width: 0; }
+  .row { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .who .nm { font-family: Fraunces, serif; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
+  .who .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .nums { text-align: right; flex: 0 0 auto; }
+  .nums .pct { font-family: Fraunces, serif; font-size: 28px; line-height: 1; }
+  .nums .votos { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .track { position: relative; height: 8px; background: var(--track); border-radius: 99px; margin-top: 10px; }
+  .fill { height: 100%; border-radius: 99px; width: 0; transition: width .5s ease; }
+  .mark50 {
+    position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--amber);
+  }
+  .mark50::after {
+    content: "50%"; position: absolute; top: -16px; left: 4px; font-size: 10px; color: var(--amber); letter-spacing: .06em;
+  }
+  .tag {
+    display: inline-block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    border: 1px solid var(--line); border-radius: 99px; padding: 2px 7px; margin-left: 6px; color: var(--amber);
+  }
+  .mapwrap { margin-top: 8px; }
+  .stage { position: relative; margin-top: 10px; }
+  #brmap { width: 100%; height: auto; display: block; }
+  #brmap path { fill: var(--track); stroke: var(--bg); stroke-width: 1.4; cursor: pointer; transition: fill .35s ease; }
+  #brmap path.on { stroke: var(--ink); stroke-width: 2.4; }
+  #brmap .uflab { font: 600 11px Outfit, sans-serif; fill: #fff; text-anchor: middle; dominant-baseline: middle; pointer-events: none; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 3px; }
+  .mapcard {
+    position: static !important; clear: both; margin-top: 12px;
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .mapcard b { display: block; font-family: Fraunces, serif; font-size: 22px; line-height: 1; }
+  .mapcard span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 99px; margin-right: 6px; }
+  footer {
+    margin-top: 28px; color: var(--muted); font-size: 12px; line-height: 1.5;
+  }
+  footer a { color: var(--cyan); }
+  .err { color: #c2410c; }
+  [data-tema="claro"] .barfill { background: linear-gradient(90deg, #0f766e, #5eead4); }
+  [data-tema="claro"] button.tab.on { color: #f3eee6; }
+  @media (max-width: 720px) {
+    .wrap { padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
+    header.top { display: block; }
+    h1 { font-size: 34px; margin-top: 4px; }
+    .kicker { font-size: 10px; }
+    .meta { text-align: left; margin-top: 8px; font-size: 12px; line-height: 1.35; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 10px; }
+    .stat { padding: 8px 10px; border-radius: 12px; }
+    .stat span { font-size: 10px; }
+    .stat strong { font-size: 20px; }
+    .controls { flex-wrap: nowrap; margin: 0 -12px 8px; padding: 8px 12px; gap: 6px; }
+    .tabs { gap: 6px; }
+    button.tab, select { min-height: 40px; padding: 8px 12px; font-size: 13px; }
+    select { width: auto; max-width: 42%; }
+    #brmap { width: 100%; }
+    #brmap .uflab { font-size: 9px; }
+    .mapcard { margin-top: 8px; padding: 12px; }
+    .mapcard b { font-size: 20px; }
+    .note, .banner span { font-size: 13px; }
+    .banner { padding: 12px; }
+    .banner b { font-size: 24px; }
+    .cand { grid-template-columns: 48px 1fr; gap: 10px; padding: 10px; border-radius: 14px; }
+    .cand img, .ph { width: 48px; height: 60px; }
+    .who .nm { font-size: 17px; }
+    .nums .pct { font-size: 22px; }
+    .nums .votos { font-size: 11px; }
+    footer { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="headrow">
+      <div class="kicker">Eleições 2026 · 1º turno · TSE</div>
+      <button class="tema" id="tema" type="button" aria-pressed="false">Modo claro</button>
+    </div>
+    <h1>Apuração<br><em>ao vivo.</em></h1>
+    <div class="meta" id="meta">
+      <div>Brasília <b id="clock">--:--:--</b></div>
+      <div>Arquivo TSE <b id="stamp">—</b></div>
+      <div id="status">conectando…</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><span>Urnas totalizadas</span><strong id="urnas">—</strong></div>
+    <div class="stat"><span>Seções</span><strong id="secoes">—</strong></div>
+    <div class="stat"><span>Comparecimento</span><strong id="comp">—</strong></div>
+    <div class="stat"><span>Votos válidos</span><strong id="validos">—</strong></div>
+  </div>
+  <div class="bartrack"><div class="barfill" id="prog"></div></div>
+
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <select id="uf" aria-label="Estado"></select>
+  </div>
+<div class="mapwrap" id="mapwrap">
+  <div class="kicker">Quem lidera em cada estado</div>
+  <div class="stage">
+    <svg id="brmap" viewBox="0 0 640 640" role="img" aria-label="Mapa do Brasil com a liderança da apuração">
+      <g id="estados"><path id="uf-ac" data-uf="ac" d="M 13.7 207.5 L 62.3 222.5 L 118.4 251.0 L 101.7 263.4 L 97.4 262.7 L 94.2 267.6 L 89.7 269.9 L 76.9 267.1 L 61.8 268.9 L 58.5 263.6 L 60.4 243.1 L 48.8 251.9 L 35.2 251.9 L 32.1 244.1 L 19.8 242.6 L 23.7 238.0 L 23.4 235.9 L 15.1 226.1 L 11.7 219.2 L 12.6 216.6 L 8.0 212.9 L 8.4 210.0 L 12.2 208.7 L 11.1 206.5 L 13.7 207.5 Z"/><path id="uf-al" data-uf="al" d="M 585.9 233.4 L 590.6 234.8 L 572.0 260.2 L 563.4 252.3 L 544.5 241.3 L 551.5 233.9 L 552.4 236.1 L 555.2 235.7 L 563.7 242.3 L 564.8 240.5 L 569.0 241.6 L 574.4 238.8 L 576.9 234.8 L 585.9 233.4 Z"/><path id="uf-am" data-uf="am" d="M 108.0 59.8 L 110.8 63.1 L 111.5 71.7 L 126.3 80.1 L 133.1 76.1 L 134.8 76.9 L 134.6 81.8 L 143.6 72.6 L 151.9 67.9 L 152.1 70.1 L 158.3 60.5 L 170.8 58.0 L 176.5 65.5 L 181.2 76.9 L 180.6 85.0 L 184.8 98.3 L 181.4 105.1 L 191.0 114.3 L 194.8 115.2 L 195.8 103.2 L 199.5 100.9 L 202.4 101.0 L 208.8 106.1 L 213.1 102.8 L 212.0 100.2 L 216.4 90.1 L 234.6 95.4 L 237.3 102.8 L 243.1 110.4 L 247.6 110.0 L 248.5 114.4 L 255.7 119.1 L 260.4 119.8 L 269.0 127.1 L 275.3 126.6 L 240.7 200.9 L 245.1 207.1 L 242.0 227.2 L 243.0 231.7 L 190.3 231.9 L 188.0 233.8 L 177.2 221.5 L 162.8 222.2 L 153.4 236.1 L 144.1 236.9 L 141.6 242.7 L 139.7 240.9 L 130.8 245.3 L 128.1 242.8 L 123.6 243.1 L 116.2 248.9 L 27.9 214.2 L 11.8 203.9 L 12.4 201.6 L 21.2 194.9 L 19.1 190.3 L 24.7 174.8 L 40.3 164.3 L 53.0 162.2 L 58.1 158.3 L 62.2 158.5 L 64.9 162.1 L 68.3 161.2 L 76.7 111.3 L 73.6 100.9 L 68.2 96.6 L 67.2 83.3 L 80.7 82.0 L 79.9 76.8 L 71.4 74.5 L 71.1 64.9 L 95.0 63.7 L 94.6 61.1 L 100.0 61.5 L 107.7 57.1 L 108.0 59.8 Z"/><path id="uf-ap" data-uf="ap" d="M 350.1 28.2 L 357.3 58.0 L 361.5 57.4 L 369.1 65.2 L 369.4 73.3 L 366.8 79.6 L 347.6 97.2 L 342.6 108.5 L 336.9 111.3 L 331.5 108.8 L 329.9 101.6 L 327.7 100.6 L 321.5 89.2 L 320.8 81.2 L 317.5 78.0 L 316.6 73.0 L 306.7 68.5 L 303.2 64.6 L 296.7 63.7 L 296.0 55.3 L 296.7 52.8 L 305.0 57.4 L 311.4 54.3 L 314.8 56.2 L 317.8 54.6 L 318.7 57.3 L 323.3 57.7 L 329.5 52.0 L 332.6 42.3 L 343.1 27.7 L 345.1 21.3 L 350.1 28.2 Z"/><path id="uf-ba" data-uf="ba" d="M 528.5 229.2 L 543.3 237.7 L 551.2 254.4 L 550.4 261.0 L 544.2 265.0 L 545.2 267.8 L 548.2 271.3 L 548.2 274.5 L 552.2 277.0 L 557.0 275.9 L 545.2 296.5 L 533.4 304.6 L 534.4 310.2 L 532.0 326.0 L 534.2 348.1 L 529.7 367.0 L 530.2 376.1 L 523.0 385.3 L 508.8 369.9 L 510.5 362.5 L 513.0 362.6 L 513.6 357.7 L 519.6 350.4 L 519.1 348.1 L 513.6 345.1 L 507.3 342.8 L 499.2 344.0 L 489.7 334.2 L 483.6 334.0 L 471.6 327.3 L 464.8 328.8 L 459.9 326.7 L 460.6 321.4 L 454.2 320.3 L 426.7 336.2 L 428.5 323.0 L 423.8 312.7 L 425.4 309.6 L 424.2 307.2 L 427.1 305.1 L 423.4 305.2 L 425.8 298.7 L 422.2 288.8 L 423.5 283.4 L 422.3 281.5 L 426.5 278.1 L 421.0 276.4 L 418.7 272.7 L 432.1 254.8 L 440.6 265.6 L 445.0 266.3 L 459.1 258.9 L 462.6 250.4 L 461.0 247.6 L 462.6 242.9 L 470.9 242.3 L 475.4 245.4 L 478.2 244.9 L 490.2 240.1 L 495.5 233.9 L 501.0 231.8 L 504.8 234.9 L 507.5 240.3 L 506.7 242.3 L 510.3 242.7 L 522.5 231.1 L 528.5 229.2 Z"/><path id="uf-ce" data-uf="ce" d="M 517.6 137.7 L 540.9 151.7 L 553.4 165.8 L 558.9 169.0 L 552.0 173.4 L 545.5 187.0 L 539.3 192.9 L 540.1 194.8 L 536.5 204.2 L 539.6 209.4 L 536.7 214.8 L 531.5 217.9 L 523.8 209.6 L 509.7 209.5 L 512.0 201.0 L 505.9 195.7 L 503.9 175.5 L 499.3 170.7 L 501.1 157.1 L 499.1 156.1 L 498.4 148.1 L 496.6 146.0 L 499.0 140.9 L 498.0 139.0 L 510.2 136.9 L 517.6 137.7 Z M 517.5 137.6 L 517.6 137.7 L 517.5 137.6 L 517.5 137.6 Z"/><path id="uf-es" data-uf="es" d="M 507.0 425.6 L 503.3 432.8 L 492.4 430.0 L 491.8 425.2 L 489.7 424.3 L 490.2 417.3 L 491.5 415.4 L 496.7 415.3 L 503.9 402.0 L 502.2 395.8 L 499.3 393.7 L 503.9 392.8 L 502.5 387.4 L 500.5 386.7 L 501.5 383.4 L 506.3 381.8 L 505.3 379.4 L 508.1 380.2 L 510.0 378.4 L 522.5 385.2 L 522.4 402.1 L 520.8 406.5 L 515.9 411.1 L 511.5 422.2 L 507.0 425.6 Z M 510.7 422.7 L 510.8 422.6 L 510.9 422.5 L 510.9 422.6 L 510.8 422.7 L 510.8 422.7 L 510.7 422.7 Z M 507.0 425.6 L 507.0 425.6 L 507.1 425.6 L 507.0 425.6 Z"/><path id="uf-go" data-uf="go" d="M 365.5 290.8 L 364.3 297.8 L 377.8 303.9 L 379.9 298.0 L 383.2 299.3 L 385.5 297.7 L 389.1 303.8 L 391.3 304.8 L 394.4 302.9 L 403.0 307.0 L 403.6 301.8 L 407.8 304.1 L 421.7 297.6 L 425.0 300.0 L 423.4 301.2 L 423.8 305.7 L 426.5 305.5 L 424.2 307.2 L 424.0 317.8 L 428.6 321.4 L 426.1 330.9 L 423.6 331.0 L 420.7 327.4 L 420.3 333.0 L 416.6 332.7 L 413.8 335.5 L 415.5 345.2 L 407.8 348.4 L 406.8 340.9 L 394.3 342.7 L 393.8 348.3 L 408.3 349.1 L 406.1 355.6 L 410.9 364.3 L 404.8 370.3 L 408.1 372.6 L 408.6 380.8 L 399.5 387.7 L 389.4 385.3 L 381.0 386.2 L 378.3 389.2 L 374.8 388.0 L 367.1 390.4 L 361.8 393.3 L 353.7 403.3 L 329.6 390.6 L 323.9 389.9 L 326.2 386.3 L 322.4 385.7 L 319.3 374.8 L 319.7 369.1 L 322.5 362.5 L 328.5 356.2 L 327.5 354.5 L 330.0 350.6 L 334.7 346.4 L 339.5 345.4 L 344.6 333.8 L 352.2 328.8 L 360.6 296.6 L 365.5 290.8 Z"/><path id="uf-ma" data-uf="ma" d="M 412.4 236.0 L 415.1 227.8 L 419.8 225.1 L 420.7 221.0 L 418.4 218.6 L 412.1 220.9 L 402.7 206.6 L 407.1 191.9 L 405.6 181.8 L 398.8 176.1 L 387.5 177.2 L 405.0 163.2 L 411.3 154.1 L 424.0 125.0 L 423.2 120.0 L 425.6 117.8 L 427.9 109.4 L 429.0 111.0 L 430.2 109.1 L 429.8 112.5 L 431.9 110.5 L 432.3 114.3 L 436.3 113.2 L 435.9 116.2 L 438.4 114.2 L 437.4 119.1 L 441.4 114.6 L 443.1 116.3 L 445.0 115.2 L 444.3 117.3 L 447.5 117.5 L 446.6 120.8 L 449.3 121.3 L 452.0 130.8 L 459.5 131.2 L 464.4 128.2 L 478.9 134.8 L 489.8 135.8 L 488.8 142.7 L 477.7 151.2 L 473.4 161.6 L 475.9 175.4 L 471.7 184.1 L 474.6 191.8 L 472.8 200.3 L 459.1 200.3 L 447.2 210.6 L 436.3 214.9 L 428.1 234.4 L 430.9 242.9 L 428.7 255.5 L 422.6 255.0 L 418.1 243.3 L 412.4 236.0 Z M 443.3 113.8 L 443.4 113.5 L 443.7 113.8 L 443.4 113.5 L 443.5 113.4 L 443.4 113.2 L 443.2 113.2 L 443.3 112.8 L 443.7 112.9 L 444.0 113.0 L 444.1 113.1 L 444.0 112.9 L 444.5 112.8 L 444.6 112.8 L 445.2 113.4 L 445.1 113.5 L 444.7 114.0 L 444.7 113.6 L 444.6 113.6 L 444.4 113.6 L 444.5 113.7 L 444.2 113.8 L 444.5 113.7 L 444.4 113.9 L 444.0 114.3 L 443.7 114.3 L 443.5 114.7 L 443.4 114.6 L 443.1 114.8 L 442.8 114.6 L 442.6 114.0 L 442.8 113.8 L 442.8 113.7 L 442.7 113.8 L 442.5 113.5 L 442.9 113.4 L 443.1 113.6 L 443.3 113.6 L 443.2 113.9 L 443.2 114.2 L 443.3 113.8 Z M 432.7 113.1 L 432.6 112.9 L 432.6 112.6 L 433.0 112.3 L 433.1 112.6 L 433.1 112.6 L 433.2 112.7 L 433.2 112.7 L 433.2 112.7 L 433.2 112.8 L 433.0 112.9 L 433.2 112.9 L 433.2 112.8 L 433.3 112.7 L 433.2 112.6 L 433.1 112.5 L 433.3 112.3 L 433.3 112.2 L 433.3 111.6 L 433.3 111.1 L 433.4 110.8 L 433.4 110.6 L 433.6 110.4 L 433.6 110.4 L 433.6 110.3 L 433.4 110.3 L 433.4 110.3 L 433.5 110.1 L 433.6 110.1 L 433.7 110.2 L 433.7 110.3 L 433.8 110.3 L 433.8 110.5 L 433.8 110.9 L 433.8 111.1 L 433.7 111.1 L 433.7 111.1 L 433.7 111.0 L 433.7 111.1 L 433.5 111.4 L 433.4 111.8 L 433.4 111.9 L 433.4 112.0 L 433.5 112.0 L 433.5 112.1 L 433.5 112.2 L 433.5 112.3 L 433.5 112.3 L 433.5 112.4 L 433.4 112.6 L 433.4 112.9 L 433.3 113.1 L 433.3 113.1 L 433.3 113.2 L 433.3 113.6 L 433.4 113.6 L 433.4 113.8 L 433.4 113.8 L 433.3 113.9 L 433.2 114.0 L 432.6 114.0 L 432.4 114.1 L 432.4 114.0 L 432.7 113.9 L 432.7 113.9 L 432.8 113.8 L 432.7 113.7 L 432.7 113.7 L 432.7 113.6 L 432.6 113.6 L 432.6 113.4 L 432.6 113.4 L 432.7 113.4 L 432.8 113.3 L 432.7 113.1 Z"/><path id="uf-mg" data-uf="mg" d="M 454.7 320.1 L 459.9 321.2 L 459.7 326.5 L 465.0 329.2 L 470.9 326.8 L 473.8 327.7 L 482.5 333.7 L 490.0 334.0 L 500.6 344.4 L 506.7 343.1 L 514.5 345.3 L 519.4 349.1 L 519.1 352.7 L 513.3 359.6 L 513.8 362.2 L 510.7 362.2 L 509.3 368.2 L 509.2 370.7 L 515.2 377.8 L 504.3 379.9 L 501.9 383.0 L 500.4 386.4 L 503.0 393.5 L 499.7 393.9 L 504.1 401.2 L 497.9 413.1 L 491.5 415.5 L 490.0 417.9 L 489.9 423.7 L 486.0 427.4 L 483.1 438.6 L 480.9 440.7 L 472.3 444.9 L 460.0 445.6 L 436.9 454.5 L 433.0 453.3 L 431.9 456.9 L 424.3 458.4 L 417.1 449.1 L 420.4 437.0 L 416.8 434.4 L 412.7 434.8 L 409.6 425.3 L 411.2 422.3 L 406.3 412.0 L 389.1 414.2 L 384.8 418.1 L 380.2 417.1 L 378.2 411.6 L 360.4 408.8 L 354.4 411.9 L 352.3 408.5 L 361.8 393.3 L 368.3 389.9 L 383.0 385.8 L 398.9 387.9 L 408.3 381.2 L 408.2 372.8 L 405.0 371.0 L 410.6 364.6 L 406.4 355.2 L 408.7 348.3 L 415.7 346.3 L 414.4 333.8 L 419.9 333.0 L 419.4 328.7 L 424.0 331.0 L 427.1 330.3 L 427.9 335.3 L 449.3 321.7 L 454.7 320.1 Z"/><path id="uf-ms" data-uf="ms" d="M 309.7 378.9 L 321.3 381.0 L 322.5 385.7 L 326.4 386.1 L 323.8 389.7 L 351.4 401.0 L 353.8 403.6 L 351.8 416.1 L 346.7 419.5 L 333.2 443.5 L 314.8 458.3 L 305.3 476.0 L 297.7 473.2 L 287.2 475.7 L 281.5 450.3 L 275.1 448.6 L 271.5 445.4 L 265.8 448.6 L 247.8 444.8 L 250.2 428.3 L 248.8 424.9 L 249.9 424.0 L 245.7 416.5 L 248.3 412.8 L 245.9 408.2 L 254.8 383.9 L 251.1 373.0 L 255.7 378.2 L 262.6 375.2 L 267.1 369.1 L 277.4 367.1 L 291.2 374.4 L 298.7 371.9 L 303.2 374.7 L 312.5 368.1 L 308.6 377.9 L 309.7 378.9 Z M 309.8 378.8 L 309.8 378.9 L 309.7 378.8 L 309.8 378.8 Z"/><path id="uf-mt" data-uf="mt" d="M 212.4 305.0 L 216.7 294.8 L 220.6 290.4 L 216.2 280.3 L 219.0 274.5 L 218.2 270.1 L 195.0 266.7 L 195.7 258.9 L 194.0 254.1 L 195.6 246.2 L 193.5 241.6 L 195.5 235.3 L 206.7 233.0 L 241.3 231.5 L 244.8 213.8 L 248.8 214.7 L 252.9 223.0 L 253.8 232.1 L 265.6 240.1 L 275.5 242.8 L 364.2 250.1 L 357.7 272.8 L 358.0 294.5 L 360.1 299.0 L 355.1 312.4 L 352.1 328.1 L 348.8 332.7 L 345.2 333.0 L 339.7 345.3 L 330.2 350.3 L 327.5 354.0 L 327.9 357.2 L 322.6 362.2 L 319.7 368.7 L 319.1 374.6 L 321.6 379.5 L 309.2 378.8 L 311.4 368.2 L 303.5 374.6 L 298.6 372.0 L 290.3 374.3 L 276.0 366.9 L 266.4 369.7 L 261.2 376.5 L 254.8 377.8 L 252.2 372.8 L 247.2 372.0 L 241.9 367.0 L 240.9 360.8 L 242.6 352.5 L 217.4 352.4 L 213.5 326.1 L 210.8 319.6 L 212.0 316.0 L 207.3 311.4 L 212.4 305.0 Z M 212.4 304.9 L 212.4 305.0 L 212.4 305.0 L 212.4 304.9 Z"/><path id="uf-pa" data-uf="pa" d="M 413.6 104.0 L 413.7 105.4 L 415.4 104.3 L 415.6 106.7 L 417.6 105.2 L 418.4 107.7 L 421.0 106.7 L 421.1 108.7 L 424.7 107.3 L 425.1 110.2 L 426.8 108.7 L 425.8 117.6 L 423.0 120.5 L 423.8 125.7 L 410.3 155.2 L 403.7 165.0 L 394.7 171.0 L 390.9 178.8 L 394.7 181.1 L 394.1 187.6 L 391.6 192.5 L 382.2 201.3 L 379.4 209.4 L 380.4 217.8 L 378.2 226.7 L 366.9 242.6 L 364.8 248.8 L 266.6 242.7 L 253.3 229.5 L 248.7 213.9 L 243.0 204.2 L 243.8 195.9 L 273.4 126.0 L 269.3 127.1 L 259.8 119.8 L 249.1 114.9 L 248.3 110.9 L 243.8 110.5 L 236.9 102.3 L 234.5 92.7 L 235.0 73.2 L 240.2 71.9 L 240.2 68.9 L 254.8 64.8 L 257.5 60.9 L 261.5 59.9 L 265.7 62.3 L 271.4 61.1 L 277.7 62.9 L 279.2 60.4 L 276.1 56.3 L 277.9 52.9 L 286.4 53.3 L 296.0 55.3 L 297.4 63.9 L 303.1 64.5 L 316.6 73.0 L 316.7 77.0 L 320.8 81.2 L 320.8 87.1 L 323.4 93.1 L 331.3 107.2 L 336.1 110.6 L 338.5 111.0 L 363.1 81.4 L 370.2 86.9 L 373.5 87.2 L 377.1 91.8 L 384.6 95.8 L 390.1 96.1 L 398.4 102.7 L 402.1 100.9 L 405.6 104.0 L 405.7 101.8 L 413.6 104.0 Z M 421.8 107.5 L 421.8 107.6 L 421.8 107.6 L 421.7 107.7 L 421.7 107.8 L 421.3 108.1 L 421.3 107.9 L 421.4 107.7 L 421.4 107.7 L 421.5 107.6 L 421.6 107.4 L 421.6 107.4 L 421.6 107.3 L 421.6 107.2 L 421.7 107.2 L 421.8 107.2 L 421.9 107.3 L 421.9 107.4 L 421.9 107.5 L 421.8 107.5 Z M 426.7 109.3 L 426.8 109.4 L 427.0 109.8 L 426.9 110.0 L 426.8 109.9 L 426.8 109.9 L 426.8 109.8 L 426.8 109.8 L 426.8 109.8 L 426.6 109.6 L 426.5 109.4 L 426.5 109.4 L 426.5 109.3 L 426.6 109.2 L 426.6 109.2 L 426.8 109.3 L 426.7 109.3 Z"/><path id="uf-pb" data-uf="pb" d="M 559.5 188.8 L 560.5 190.7 L 557.3 193.6 L 555.7 199.0 L 560.0 201.4 L 563.3 200.1 L 566.9 201.6 L 566.7 203.7 L 570.2 201.3 L 570.2 197.7 L 571.3 198.3 L 569.9 195.9 L 573.7 193.2 L 577.8 195.8 L 592.7 196.3 L 595.4 203.9 L 595.4 213.0 L 589.2 210.2 L 583.4 215.0 L 572.4 217.2 L 563.0 225.1 L 560.4 222.7 L 560.6 220.4 L 557.7 219.5 L 562.9 211.8 L 560.3 209.3 L 558.5 208.8 L 546.7 217.1 L 539.2 216.2 L 537.3 213.5 L 539.7 208.7 L 536.4 203.0 L 538.4 200.7 L 538.9 194.4 L 541.0 193.5 L 545.9 196.5 L 551.6 191.5 L 559.5 188.8 Z M 594.9 203.9 L 595.0 204.0 L 595.1 203.9 L 595.1 203.9 L 595.2 204.0 L 595.2 204.0 L 595.1 204.2 L 595.1 204.3 L 595.0 204.4 L 595.0 204.4 L 594.9 204.4 L 594.9 204.3 L 594.9 204.2 L 594.9 204.1 L 594.9 204.1 L 594.9 204.0 L 594.9 203.9 L 594.9 203.9 Z"/><path id="uf-pe" data-uf="pe" d="M 560.2 209.2 L 563.0 211.7 L 557.5 219.8 L 560.0 219.9 L 563.2 225.0 L 572.3 217.2 L 585.0 214.5 L 585.3 211.5 L 589.4 210.3 L 595.4 213.0 L 595.3 220.3 L 590.8 234.3 L 579.0 234.3 L 574.4 238.8 L 563.7 242.3 L 555.5 235.7 L 550.7 234.4 L 544.8 240.9 L 539.4 233.4 L 537.5 235.2 L 526.7 228.8 L 511.3 242.0 L 506.7 243.3 L 507.7 238.6 L 504.0 233.6 L 497.5 231.5 L 508.8 221.9 L 508.0 211.3 L 523.9 209.7 L 531.5 217.2 L 537.6 214.4 L 539.1 216.3 L 542.7 215.3 L 544.0 217.5 L 560.2 209.2 Z M 631.8 153.7 L 631.9 153.6 L 631.9 153.7 L 631.9 153.8 L 631.9 153.8 L 632.0 153.9 L 631.9 153.9 L 631.9 153.9 L 631.9 154.0 L 631.7 154.0 L 631.7 154.0 L 631.7 154.1 L 631.6 154.1 L 631.6 154.1 L 631.6 154.1 L 631.6 154.1 L 631.5 154.1 L 631.5 154.1 L 631.5 154.2 L 631.5 154.2 L 631.5 154.3 L 631.4 154.2 L 631.4 154.2 L 631.3 154.2 L 631.2 154.2 L 631.2 154.2 L 631.1 154.2 L 631.1 154.3 L 631.0 154.3 L 631.0 154.4 L 630.9 154.3 L 630.9 154.3 L 630.8 154.3 L 631.0 154.2 L 631.0 154.1 L 631.2 154.0 L 631.2 153.9 L 631.2 153.9 L 631.3 153.8 L 631.3 153.8 L 631.8 153.7 Z M 631.9 153.6 L 631.9 153.6 L 631.9 153.5 L 631.9 153.6 L 631.9 153.6 Z"/><path id="uf-pi" data-uf="pi" d="M 491.8 137.2 L 498.8 139.8 L 496.8 146.4 L 500.9 158.4 L 499.3 170.7 L 504.2 176.5 L 506.0 196.2 L 511.7 201.9 L 510.2 209.0 L 508.0 211.3 L 508.8 222.6 L 497.2 231.5 L 489.6 240.2 L 484.5 240.7 L 476.5 245.6 L 466.2 240.4 L 460.2 246.0 L 462.9 249.4 L 462.5 253.1 L 456.1 262.0 L 448.4 263.0 L 443.9 267.0 L 440.6 265.6 L 436.3 260.9 L 434.9 255.9 L 429.0 254.9 L 431.0 243.5 L 428.5 233.6 L 438.0 213.4 L 447.7 210.0 L 457.0 200.8 L 462.1 199.4 L 466.1 201.7 L 474.2 198.6 L 474.9 192.0 L 471.4 186.6 L 475.5 177.8 L 474.0 158.8 L 479.9 148.1 L 484.8 147.2 L 489.4 141.8 L 490.2 137.1 L 491.8 137.2 Z"/><path id="uf-pr" data-uf="pr" d="M 336.9 452.6 L 356.0 458.4 L 367.9 458.9 L 372.4 462.7 L 374.2 466.7 L 373.7 473.5 L 379.1 482.6 L 378.3 486.6 L 388.9 486.8 L 390.4 487.9 L 389.9 493.7 L 394.4 492.1 L 397.0 495.6 L 388.8 507.7 L 379.8 508.3 L 374.6 511.6 L 368.8 508.2 L 362.6 509.9 L 359.3 508.1 L 357.1 512.0 L 349.2 513.3 L 349.6 517.1 L 346.3 519.0 L 345.5 517.5 L 327.0 513.6 L 314.6 512.7 L 310.6 507.6 L 309.3 502.1 L 306.4 501.9 L 306.5 500.1 L 301.5 503.1 L 299.2 501.5 L 303.7 482.3 L 302.8 478.8 L 314.0 459.0 L 321.7 454.3 L 336.9 452.6 Z"/><path id="uf-rj" data-uf="rj" d="M 450.2 464.8 L 447.1 465.8 L 444.7 463.2 L 446.5 459.8 L 453.9 457.1 L 455.1 454.3 L 448.9 453.8 L 446.2 450.2 L 460.7 445.4 L 472.1 445.4 L 483.9 439.4 L 482.5 438.4 L 485.8 427.5 L 490.1 424.3 L 491.7 425.3 L 492.1 429.9 L 503.2 432.7 L 502.7 444.4 L 488.2 453.0 L 489.7 456.4 L 487.6 459.8 L 471.8 459.4 L 472.2 455.0 L 468.8 456.5 L 470.3 459.5 L 464.6 461.3 L 459.8 458.6 L 455.0 460.9 L 452.5 460.4 L 453.0 458.9 L 447.8 461.0 L 447.1 463.2 L 450.2 464.8 Z M 454.4 461.5 L 456.4 462.9 L 452.6 463.7 L 454.4 461.5 Z M 470.1 456.6 L 470.2 456.6 L 470.2 456.5 L 470.3 456.5 L 470.3 456.6 L 470.3 456.6 L 470.4 456.5 L 470.5 456.5 L 470.5 456.6 L 470.5 456.7 L 470.4 456.7 L 470.3 456.8 L 470.2 456.8 L 470.1 456.9 L 470.2 457.0 L 470.2 457.0 L 470.2 457.2 L 470.2 457.2 L 470.3 457.2 L 470.4 457.2 L 470.3 457.3 L 470.3 457.3 L 470.3 457.4 L 470.2 457.3 L 470.2 457.3 L 470.2 457.3 L 470.1 457.4 L 470.1 457.3 L 470.0 457.3 L 470.0 457.2 L 469.8 457.2 L 469.7 457.1 L 469.6 457.1 L 469.6 457.2 L 469.5 457.2 L 469.5 457.2 L 469.4 457.2 L 469.4 457.3 L 469.2 457.4 L 469.1 457.3 L 469.2 457.3 L 469.1 457.2 L 469.0 457.2 L 469.0 457.1 L 468.9 457.0 L 468.9 457.0 L 468.9 457.0 L 469.0 456.9 L 469.0 457.0 L 469.1 457.0 L 469.2 457.0 L 469.2 456.9 L 469.2 456.9 L 469.3 456.8 L 469.4 456.7 L 469.4 456.6 L 469.6 456.6 L 469.6 456.7 L 469.7 456.8 L 470.0 456.8 L 470.0 456.8 L 470.0 456.7 L 470.0 456.7 L 470.1 456.6 L 470.1 456.6 Z"/><path id="uf-rn" data-uf="rn" d="M 560.6 171.2 L 567.5 173.7 L 578.4 172.9 L 586.6 175.8 L 593.3 195.9 L 577.8 195.9 L 572.5 193.2 L 570.4 194.0 L 569.9 201.4 L 566.8 203.8 L 566.3 200.8 L 563.2 199.7 L 559.3 201.4 L 555.7 199.0 L 557.2 193.7 L 560.3 191.1 L 559.2 188.7 L 551.5 191.4 L 546.4 196.4 L 539.2 193.8 L 541.7 189.2 L 545.4 187.4 L 551.9 173.8 L 557.5 170.0 L 560.6 171.2 Z"/><path id="uf-ro" data-uf="ro" d="M 121.0 250.2 L 117.5 247.9 L 123.2 243.0 L 128.9 243.4 L 130.8 245.4 L 132.8 243.3 L 135.5 243.8 L 136.1 241.4 L 139.7 240.9 L 141.1 243.1 L 144.1 237.0 L 155.7 235.5 L 159.8 224.8 L 162.5 222.7 L 175.1 220.0 L 180.1 226.4 L 182.5 226.6 L 182.7 229.8 L 187.4 233.0 L 193.4 232.2 L 195.7 234.8 L 193.5 240.7 L 195.2 245.0 L 194.7 267.8 L 218.1 270.4 L 219.1 274.2 L 216.2 280.7 L 220.6 290.2 L 217.0 293.8 L 216.7 298.3 L 212.0 307.4 L 206.7 311.1 L 202.9 308.1 L 190.6 308.8 L 185.3 302.2 L 176.8 300.4 L 171.0 294.6 L 167.9 294.9 L 162.1 291.2 L 153.4 292.0 L 150.2 287.7 L 142.3 283.5 L 140.9 279.7 L 139.0 279.6 L 137.9 273.6 L 138.8 266.2 L 136.4 259.9 L 138.3 256.2 L 138.0 249.2 L 136.2 247.2 L 134.4 249.2 L 131.4 248.0 L 121.0 250.2 Z M 121.0 250.2 L 121.0 250.2 L 121.0 250.3 L 121.0 250.2 Z"/><path id="uf-rr" data-uf="rr" d="M 219.1 42.0 L 218.0 47.9 L 222.0 56.6 L 222.5 64.2 L 234.3 72.4 L 215.8 90.6 L 212.1 101.7 L 213.3 103.7 L 206.9 106.0 L 201.9 100.5 L 196.4 102.6 L 194.3 106.7 L 194.8 115.4 L 193.0 115.2 L 181.1 105.2 L 185.0 97.7 L 180.9 86.6 L 180.7 75.6 L 178.6 69.8 L 165.5 53.5 L 157.7 52.8 L 154.8 34.9 L 146.1 25.8 L 146.6 23.9 L 149.0 26.5 L 155.6 26.5 L 158.4 30.4 L 163.1 28.4 L 165.4 30.6 L 166.2 28.9 L 169.5 29.1 L 173.0 34.5 L 176.8 32.4 L 176.4 28.4 L 180.0 26.3 L 188.6 26.4 L 198.8 19.8 L 203.5 19.4 L 208.8 13.5 L 207.0 9.2 L 214.1 8.3 L 217.8 11.8 L 215.8 20.2 L 222.1 21.8 L 224.8 28.8 L 220.0 35.0 L 220.8 38.5 L 219.1 42.0 Z"/><path id="uf-rs" data-uf="rs" d="M 337.2 597.2 L 334.3 601.4 L 336.6 605.1 L 328.9 621.0 L 316.5 631.9 L 314.9 629.9 L 316.0 623.7 L 319.8 620.6 L 320.8 616.8 L 322.9 616.1 L 325.8 618.5 L 328.3 614.6 L 328.1 606.4 L 321.7 614.5 L 317.0 613.4 L 311.8 605.7 L 300.2 596.3 L 290.2 592.3 L 284.4 585.8 L 279.0 589.3 L 275.0 581.7 L 265.3 573.5 L 261.5 573.9 L 259.4 576.6 L 253.3 575.0 L 262.2 567.2 L 279.3 546.5 L 282.4 546.8 L 281.1 544.1 L 292.5 537.4 L 296.0 533.1 L 303.8 531.1 L 308.5 526.8 L 317.2 525.5 L 334.1 528.2 L 352.1 538.1 L 359.4 546.7 L 371.3 547.4 L 372.5 549.9 L 368.6 552.6 L 368.5 557.1 L 365.7 560.6 L 367.3 561.5 L 368.7 559.2 L 371.9 561.7 L 357.8 587.4 L 349.1 597.1 L 337.2 604.3 L 336.5 601.6 L 346.3 597.9 L 357.2 584.2 L 357.4 577.5 L 359.2 579.7 L 358.1 575.1 L 352.6 578.2 L 348.4 572.8 L 350.7 578.8 L 346.8 584.5 L 346.2 589.4 L 338.5 594.0 L 337.1 598.9 L 337.2 597.2 Z M 348.4 584.0 L 348.6 584.8 L 348.6 584.8 L 348.6 584.9 L 348.6 585.0 L 348.5 585.1 L 348.4 585.1 L 348.6 584.9 L 348.6 584.8 L 348.5 584.8 L 348.2 584.6 L 348.1 584.5 L 348.0 584.5 L 348.1 584.5 L 348.1 584.5 L 348.3 584.5 L 348.5 584.3 L 348.4 584.2 L 348.4 584.2 L 348.4 584.0 Z M 316.6 622.1 L 316.5 622.1 L 316.6 622.0 L 316.6 621.9 L 316.7 621.8 L 316.7 621.7 L 316.8 621.7 L 316.7 621.8 L 316.7 621.9 L 316.6 621.9 L 316.6 622.1 Z"/><path id="uf-sc" data-uf="sc" d="M 312.1 517.0 L 313.2 512.6 L 317.0 512.0 L 347.6 518.5 L 349.1 518.1 L 349.1 513.6 L 360.3 508.5 L 362.5 509.8 L 369.5 508.5 L 374.1 511.5 L 380.1 508.2 L 388.8 507.7 L 390.4 511.8 L 387.6 518.7 L 389.1 526.4 L 390.6 526.5 L 388.6 528.4 L 389.9 529.6 L 388.3 531.5 L 388.1 543.7 L 386.1 549.0 L 371.6 560.8 L 369.2 559.3 L 366.6 561.2 L 365.6 559.5 L 368.5 557.4 L 368.6 552.3 L 372.2 549.7 L 371.7 548.1 L 359.7 546.9 L 350.9 537.2 L 345.7 533.1 L 339.3 532.0 L 337.7 529.5 L 318.2 525.9 L 310.3 526.5 L 312.8 523.2 L 312.1 517.0 Z M 391.7 530.3 L 389.3 537.4 L 389.7 531.4 L 391.7 530.3 Z M 389.4 531.7 L 389.4 531.6 L 389.4 531.7 L 389.4 531.7 Z"/><path id="uf-se" data-uf="se" d="M 548.5 244.7 L 563.4 252.1 L 572.0 260.2 L 565.1 264.1 L 558.0 275.1 L 554.5 277.0 L 548.4 274.6 L 548.2 271.3 L 544.3 266.2 L 544.7 263.6 L 548.3 264.3 L 551.7 257.2 L 550.4 252.2 L 547.9 250.8 L 548.5 244.7 Z"/><path id="uf-sp" data-uf="sp" d="M 425.8 473.8 L 423.6 476.8 L 422.3 475.8 L 412.8 481.4 L 396.4 496.8 L 394.4 492.2 L 389.1 492.6 L 390.3 488.3 L 388.7 486.8 L 378.3 486.5 L 379.1 482.7 L 373.9 473.5 L 373.5 464.7 L 367.9 458.9 L 360.8 459.1 L 338.6 453.1 L 333.4 454.2 L 322.8 452.1 L 330.0 447.7 L 334.1 442.5 L 346.7 419.4 L 353.9 412.3 L 361.0 408.7 L 377.8 411.8 L 384.4 419.1 L 385.0 415.0 L 405.4 411.6 L 410.9 421.5 L 409.5 424.9 L 412.9 434.8 L 418.2 433.9 L 420.2 436.0 L 417.5 441.5 L 417.2 448.3 L 421.7 453.4 L 420.7 455.3 L 422.3 457.6 L 429.5 457.8 L 432.0 457.1 L 431.8 453.8 L 437.5 454.3 L 445.4 451.0 L 449.1 454.1 L 455.1 454.3 L 454.2 456.8 L 446.4 459.8 L 444.6 463.5 L 446.7 465.9 L 444.2 465.4 L 436.9 470.0 L 436.8 473.0 L 425.8 473.8 Z M 438.0 474.7 L 435.9 474.3 L 437.9 471.6 L 439.5 475.1 L 438.0 474.7 Z M 441.7 468.6 L 441.8 468.7 L 441.9 468.7 L 441.9 468.6 L 442.0 468.5 L 442.2 468.6 L 442.3 468.6 L 442.2 468.7 L 442.2 468.8 L 442.0 468.8 L 441.8 469.0 L 441.7 469.0 L 441.7 469.1 L 441.7 469.0 L 441.6 468.9 L 441.7 468.8 L 441.6 468.7 L 441.6 468.7 L 441.7 468.6 L 441.7 468.5 L 441.7 468.5 L 441.7 468.6 L 441.7 468.6 Z"/><path id="uf-to" data-uf="to" d="M 412.4 235.9 L 419.3 244.3 L 422.1 254.1 L 431.8 255.9 L 424.7 262.8 L 419.0 273.9 L 420.6 276.3 L 426.6 278.2 L 423.3 278.2 L 422.3 281.8 L 425.2 282.4 L 421.9 284.6 L 423.4 290.8 L 425.1 291.8 L 423.6 298.5 L 426.1 299.0 L 423.1 299.9 L 421.9 297.8 L 421.1 299.6 L 408.6 304.3 L 403.1 302.4 L 403.3 306.4 L 395.5 305.0 L 394.7 302.9 L 391.6 304.5 L 390.7 302.3 L 388.9 304.9 L 389.0 301.8 L 384.8 297.2 L 380.0 297.9 L 377.7 304.2 L 363.5 297.6 L 365.0 290.8 L 359.4 297.7 L 357.6 294.5 L 358.3 282.6 L 356.8 276.8 L 359.2 263.9 L 367.6 240.7 L 379.6 223.3 L 379.7 203.9 L 392.1 194.3 L 391.4 191.1 L 395.8 182.4 L 392.1 178.5 L 388.2 178.4 L 389.4 176.0 L 398.1 176.0 L 405.7 182.4 L 406.7 194.2 L 404.9 203.8 L 402.1 206.5 L 412.0 220.7 L 418.9 218.6 L 420.5 219.9 L 420.0 224.9 L 416.1 226.3 L 412.4 235.9 Z"/><path id="uf-df" data-uf="df" d="M 408.2 348.7 L 393.7 349.0 L 394.9 340.2 L 406.6 340.1 L 408.1 341.6 L 408.2 348.7 Z"/></g>
+      <g id="siglas"><text class="uflab" data-uf="ac" x="44.4" y="238.4">AC</text><text class="uflab" data-uf="al" x="577.9" y="241.9">AL</text><text class="uflab" data-uf="am" x="144.3" y="132.7">AM</text><text class="uflab" data-uf="ap" x="329.9" y="66.4">AP</text><text class="uflab" data-uf="ba" x="488.3" y="292.9">BA</text><text class="uflab" data-uf="ce" x="525.2" y="167.8">CE</text><text class="uflab" data-uf="es" x="517.8" y="410.0">ES</text><text class="uflab" data-uf="go" x="383.3" y="340.4">GO</text><text class="uflab" data-uf="ma" x="437.0" y="129.2">MA</text><text class="uflab" data-uf="mg" x="447.7" y="383.4">MG</text><text class="uflab" data-uf="ms" x="292.9" y="406.1">MS</text><text class="uflab" data-uf="mt" x="263.8" y="311.6">MT</text><text class="uflab" data-uf="pa" x="366.8" y="115.2">PA</text><text class="uflab" data-uf="pb" x="580.5" y="200.1">PB</text><text class="uflab" data-uf="pe" x="601.8" y="182.4">PE</text><text class="uflab" data-uf="pi" x="473.5" y="206.4">PI</text><text class="uflab" data-uf="pr" x="349.6" y="491.9">PR</text><text class="uflab" data-uf="rj" x="478.5" y="461.5">RJ</text><text class="uflab" data-uf="rn" x="570.4" y="183.0">RN</text><text class="uflab" data-uf="ro" x="161.6" y="260.9">RO</text><text class="uflab" data-uf="rr" x="192.0" y="51.4">RR</text><text class="uflab" data-uf="rs" x="329.5" y="586.4">RS</text><text class="uflab" data-uf="sc" x="368.8" y="532.2">SC</text><text class="uflab" data-uf="se" x="560.9" y="267.2">SE</text><text class="uflab" data-uf="sp" x="416.1" y="460.1">SP</text><text class="uflab" data-uf="to" x="400.9" y="258.6">TO</text><text class="uflab" data-uf="df" x="421.3" y="352.7">DF</text></g>
+    </svg>
+  </div>
+  <div class="mapcard" id="mapcard"><b>Toque um estado</b><span>O nome aparece aqui, embaixo do mapa.</span></div>
+  <div class="legend" id="legend"></div>
+
+  <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
+  <div class="list" id="list"></div>
+  
+  <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
+</div>
+  <footer>
+    Fonte: arquivos JSON públicos do Tribunal Superior Eleitoral
+    (<a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">resultados.tse.jus.br</a>),
+    eleição federal 6257 e estadual 6259, pleito 3220 de 04/10/2026.
+    Esta tela só lê e mostra esses arquivos — não é o portal oficial e não altera números.
+    Atualização automática a cada 20 segundos. Última leitura local: <span id="lido">—</span>.
+    <span id="erro" class="err"></span>
+  </footer>
+</div>
+<script>
+const UFS = ["ac","al","am","ap","ba","ce","df","es","go","ma","mg","ms","mt","pa","pb","pe","pi","pr","rj","rn","ro","rr","rs","sc","se","sp","to"];
+const UFNOME = {ac:"Acre",al:"Alagoas",am:"Amazonas",ap:"Amapá",ba:"Bahia",ce:"Ceará",df:"Distrito Federal",es:"Espírito Santo",go:"Goiás",ma:"Maranhão",mg:"Minas Gerais",ms:"Mato Grosso do Sul",mt:"Mato Grosso",pa:"Pará",pb:"Paraíba",pe:"Pernambuco",pi:"Piauí",pr:"Paraná",rj:"Rio de Janeiro",rn:"Rio Grande do Norte",ro:"Rondônia",rr:"Roraima",rs:"Rio Grande do Sul",sc:"Santa Catarina",se:"Sergipe",sp:"São Paulo",to:"Tocantins"};
+const CARGOS = [
+  {id:"pres", nome:"Presidente", ele:"6257", cargo:"0001", uf:"br", fotoEle:"6257"},
+  {id:"gov", nome:"Governador", ele:"6259", cargo:"0003", fotoEle:"6259"},
+  {id:"sen", nome:"Senado", ele:"6259", cargo:"0005", fotoEle:"6259"},
+  {id:"df", nome:"Dep. Federal", ele:"6259", cargo:"0006", fotoEle:"6259", top:12},
+  {id:"de", nome:"Dep. Estadual", ele:"6259", cargo:"0007", fotoEle:"6259", top:12}
+];
+const CORES = {PT:"#e11d2e",PL:"#3b82f6",PSD:"#22a06b",NOVO:"#f97316",MDB:"#14b8a6",AVANTE:"#f5b942","MISSÃO":"#e85d4c",UP:"#b91c1c",PCB:"#ef4444",PSTU:"#d97706",PCO:"#9f1239",DC:"#0891b2",PRTB:"#0284c7",DEMOCRATA:"#94a3b8",PSB:"#fb7185","UNIÃO":"#2563eb",PP:"#1d4ed8",REPUBLICANOS:"#1e40af",PDT:"#ea580c",PSOL:"#eab308",PODE:"#60a5fa",PSDB:"#38bdf8",PCDOB:"#dc2626",PV:"#16a34a",REDE:"#65a30d"};
+const TSE = "https://resultados.tse.jus.br";
+let cargoAtual = CARGOS[0];
+let ufAtual = "ma";
+let timer;
+
+function num(v){ if (typeof v === "number") return v; const s = String(v||"0").trim(); if (s.includes(",")) return Number(s.replace(/\./g,"").replace(",",".")) || 0; return Number(s) || 0; }
+function fmt(n){ return Number(n||0).toLocaleString("pt-BR"); }
+function pct(v){ const n = num(v); return n.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + "%"; }
+
+function tick(){
+  const d = new Date(Date.now() + (new Date().getTimezoneOffset()+180)*60000);
+  // display local clock is fine; label says Brasília only if user is in BRT. Use America/Sao_Paulo.
+  document.getElementById("clock").textContent = new Date().toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo"});
+}
+setInterval(tick, 1000); tick();
+
+function aplicarTema(tema){
+  document.documentElement.dataset.tema = tema;
+  try { localStorage.setItem("apuracao-tema", tema); } catch (e) {}
+  const b = document.getElementById("tema");
+  const claro = tema === "claro";
+  b.textContent = claro ? "Modo escuro" : "Modo claro";
+  b.setAttribute("aria-pressed", claro ? "true" : "false");
+  document.querySelector('meta[name="theme-color"]').content = claro ? "#f3eee6" : "#08080a";
+}
+let temaInicial = "escuro";
+try { temaInicial = localStorage.getItem("apuracao-tema") || (matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "escuro"); } catch (e) {}
+aplicarTema(temaInicial);
+document.getElementById("tema").onclick = () => aplicarTema(document.documentElement.dataset.tema === "claro" ? "escuro" : "claro");
+
+async function getJSON(path){
+  const url = TSE + path + (path.includes("?")?"&":"?") + "t=" + Date.now();
+  try {
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } catch (err) {
+    const proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+    const r2 = await fetch(proxy, {cache:"no-store"});
+    if (!r2.ok) throw new Error("sem acesso ao TSE (" + err.message + ")");
+    const text = await r2.text();
+    return JSON.parse(text);
+  }
+}
+
+function foto(c, cand){
+  const uf = c.fotoEle === "6257" ? "br" : ufAtual;
+  return `${TSE}/oficial/ele2026/${c.fotoEle}/fotos/${uf}/${cand.sqcand}.jpeg`;
+}
+
+function candidatos(data){
+  const out = [];
+  const carg = (data.carg || [])[0];
+  if (!carg) return out;
+  for (const agr of carg.agr || []) {
+    for (const par of agr.par || []) {
+      for (const cand of par.cand || []) {
+        out.push({
+          nome: cand.nmu || cand.nm,
+          numero: cand.n,
+          partido: par.sg,
+          votos: num(cand.vap),
+          pvap: cand.pvap,
+          sqcand: cand.sqcand,
+          eleito: cand.e === "s" || /eleit/i.test(cand.st || ""),
+          st: cand.st || "",
+          vice: (cand.vs && cand.vs[0] && (cand.vs[0].nmu || cand.vs[0].nm)) || ""
+        });
+      }
+    }
+  }
+  out.sort((a,b) => b.votos - a.votos);
+  return out;
+}
+
+function render(data){
+  const s = data.s || {};
+  const e = data.e || {};
+  const v = data.v || {};
+  const urnas = num(s.pstn || s.pst);
+  document.getElementById("urnas").textContent = pct(s.pst || s.pstn);
+  document.getElementById("secoes").textContent = fmt(s.st) + " / " + fmt(s.ts);
+  document.getElementById("comp").textContent = e.pc ? pct(e.pc) : "—";
+  document.getElementById("validos").textContent = fmt(v.vv);
+  document.getElementById("prog").style.width = Math.max(0, Math.min(100, urnas)) + "%";
+  document.getElementById("stamp").textContent = (data.dg || "—") + " " + (data.hg || "");
+  const final = data.tf === "s" || urnas >= 100;
+  const maioria = cargoAtual.id === "pres" || cargoAtual.id === "gov";
+  document.getElementById("status").textContent = urnas <= 0 ? "aguardando os primeiros boletins" : (final ? "totalização encerrada neste arquivo" : "apuração parcial");
+
+  let lista = candidatos(data);
+  const top = cargoAtual.top || lista.length;
+  lista = lista.slice(0, top);
+  const lider = lista[0];
+  const segundo = lista[1];
+  const maior = Math.max(...lista.map(c => num(c.pvap)), 1);
+  const oficiais = lista.filter(c => c.eleito);
+  const maioriaFechada = maioria && final && lider && num(lider.pvap) > 50;
+  const segundoTurno = maioria && final && lider && num(lider.pvap) <= 50;
+  const banner = document.getElementById("banner");
+  banner.className = "banner";
+  if (oficiais.length) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>Eleito: ${oficiais.map(c => c.nome).join(" · ")}</b><span>Situação gravada pelo TSE neste arquivo${oficiais[0].st ? " (" + oficiais[0].st + ")" : ""}.</span>`;
+  } else if (maioriaFechada) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>Eleito no 1º turno: ${lider.nome}</b><span>Totalização deste arquivo fechada e mais de 50% dos votos válidos. O carimbo “eleito” do TSE pode aparecer em seguida.</span>`;
+  } else if (segundoTurno) {
+    banner.classList.add("turno");
+    banner.innerHTML = `<b>2º turno: ${lider.nome} e ${segundo ? segundo.nome : "—"}</b><span>Ninguém passou de 50% dos votos válidos com a totalização fechada. Segundo turno em 25/10.</span>`;
+  } else if (urnas <= 0) {
+    banner.innerHTML = `<b>Aguardando o carimbo de eleito</b><span>A divulgação oficial começa depois das 17h. Ninguém está eleito enquanto o arquivo não fechar.</span>`;
+  } else if (maioria && lider && num(lider.pvap) > 50) {
+    banner.innerHTML = `<b>Ainda não eleito</b><span>${lider.nome} passa de 50% neste recorte, com ${pct(urnas)} das urnas. Isso muda. Eleito só entra quando a totalização fechar ou o TSE gravar a situação.</span>`;
+  } else {
+    banner.innerHTML = `<b>Ninguém eleito neste arquivo</b><span>${maioria ? "Presidente e governador precisam de mais de 50% dos votos válidos no fim da apuração." : "Deputado e senador só aparecem como eleitos quando o TSE gravar a situação."} Agora: ${pct(urnas)} das urnas.</span>`;
+  }
+  const note = document.getElementById("note");
+  if (urnas <= 0) {
+    note.textContent = "A tela continua lendo o arquivo do TSE e preenche sozinha quando os boletins entrarem.";
+  } else if (maioria) {
+    note.textContent = "A linha âmbar é a maioria absoluta: mais de 50% dos votos válidos. Acima dela no meio da apuração não é eleição.";
+  } else if (cargoAtual.id === "sen") {
+    note.textContent = "Senado: duas vagas por estado. “Eleito” só aparece com a situação do TSE, não só por estar na frente.";
+  } else {
+    note.textContent = "Cargo proporcional: a lista é de mais votados. Eleito só quando o TSE gravar isso — voto de legenda e quociente entram nessa conta.";
+  }
+
+  document.getElementById("list").innerHTML = lista.map((c, i) => {
+    const cor = CORES[c.partido] || "#c2410c";
+    const w = Math.max(1.5, (num(c.pvap) / Math.max(maior, 50)) * 100);
+    const tag = c.eleito || (maioriaFechada && i === 0)
+      ? '<span class="tag">eleito</span>'
+      : (segundoTurno && i < 2) ? '<span class="tag">2º turno</span>'
+      : (maioria && i === 0 && num(c.pvap) > 50) ? '<span class="tag">acima de 50% agora</span>'
+      : (cargoAtual.id === "sen" && i < 2 && c.votos > 0) ? '<span class="tag">na frente</span>' : "";
+    return `<article class="cand">
+      <img alt="" src="${foto(cargoAtual, c)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${c.numero}'}))" />
+      <div class="who">
+        <div class="row">
+          <div>
+            <div class="nm">${c.nome}${tag}</div>
+            <div class="sub">${c.partido} · ${c.numero}${c.vice ? " · vice " + c.vice : ""}</div>
+          </div>
+          <div class="nums">
+            <div class="pct">${c.pvap && c.pvap !== "0,00" ? pct(c.pvap) : (c.votos ? "—" : "0%")}</div>
+            <div class="votos">${fmt(c.votos)} votos</div>
+          </div>
+        </div>
+        <div class="track"><div class="fill" style="width:${w}%;background:${cor}"></div>${maioria?'<div class="mark50"></div>':""}</div>
+      </div>
+    </article>`;
+  }).join("") || "<div class='note'>Ainda sem candidatos neste arquivo.</div>";
+}
+
+const LIDER = {};
+let ufMapa = "sp";
+function pintar(uf){
+  const info = LIDER[uf];
+  document.querySelectorAll("#brmap path").forEach(p => p.classList.toggle("on", p.dataset.uf === uf));
+  const card = document.getElementById("mapcard");
+  if (!info || !info.votos) {
+    card.innerHTML = `<b>${UFNOME[uf]}</b><span>Ainda sem votos neste arquivo</span>`;
+    return;
+  }
+  card.innerHTML = `<b>${UFNOME[uf]}</b><span style="color:${info.cor}">${info.nome}</span><span>${info.partido} · ${info.pct} dos votos válidos</span>`;
+}
+function ligarMapa(){
+  const svg = document.getElementById("brmap");
+  if (svg.dataset.ok) return;
+  svg.dataset.ok = "1";
+  svg.addEventListener("click", (ev) => {
+    const p = ev.target.closest("path");
+    if (!p) return;
+    ufMapa = p.dataset.uf;
+    pintar(ufMapa);
+  });
+}
+async function mapa(){
+  const box = document.getElementById("mapwrap");
+  if (cargoAtual.id !== "pres") { box.hidden = true; return; }
+  box.hidden = false;
+  ligarMapa();
+  await Promise.all(UFS.map(async uf => {
+    try {
+      const data = await getJSON(`/oficial/ele2026/6257/dados/${uf}/${uf}-c0001-e006257-u.json`);
+      const l = candidatos(data)[0];
+      const path = document.getElementById("uf-" + uf);
+      if (!l || !l.votos) { LIDER[uf] = {votos:0}; if (path) path.style.fill = ""; return; }
+      const cor = CORES[l.partido] || "#c2410c";
+      LIDER[uf] = {nome: l.nome, partido: l.partido, pct: pct(l.pvap), cor, votos: l.votos};
+      if (path) path.style.fill = cor;
+    } catch (e) {}
+  }));
+  const partes = {};
+  Object.values(LIDER).forEach(i => { if (i.partido) partes[i.partido] = i.cor; });
+  document.getElementById("legend").innerHTML = Object.entries(partes).map(([p,c]) => `<span><i style="background:${c}"></i>${p}</span>`).join("");
+  if (!LIDER[ufMapa] || !LIDER[ufMapa].votos) {
+    const algum = Object.entries(LIDER).find(([,i]) => i.votos);
+    if (algum) ufMapa = algum[0];
+  }
+  pintar(ufMapa);
+}
+
+async function carregar(){
+  const uf = cargoAtual.uf || ufAtual;
+  const ele = cargoAtual.ele;
+  const path = `/oficial/ele2026/${ele}/dados/${uf}/${uf}-c${cargoAtual.cargo}-e${ele.padStart(6,"0")}-u.json`;
+  document.getElementById("erro").textContent = "";
+  try {
+    const data = await getJSON(path);
+    render(data);
+    document.getElementById("lido").textContent = new Date().toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo"});
+    if (cargoAtual.id === "pres") mapa();
+    else { const m = document.getElementById("mapwrap"); if (m) m.hidden = true; }
+  } catch (e) {
+    document.getElementById("erro").textContent = " Falha ao ler o TSE: " + e.message;
+    document.getElementById("status").textContent = "sem atualização";
+  }
+}
+
+function ui(){
+  document.getElementById("tabs").innerHTML = CARGOS.map(c =>
+    `<button class="tab${c.id===cargoAtual.id?" on":""}" data-id="${c.id}">${c.nome}</button>`).join("");
+  document.getElementById("tabs").onclick = (ev) => {
+    const b = ev.target.closest("button");
+    if (!b) return;
+    cargoAtual = CARGOS.find(c => c.id === b.dataset.id);
+    document.getElementById("uf").style.display = cargoAtual.uf ? "none" : "";
+    const mw = document.getElementById("mapwrap"); if (mw) mw.hidden = cargoAtual.id !== "pres";
+    ui();
+    carregar();
+  };
+  const sel = document.getElementById("uf");
+  if (!sel.options.length) {
+    sel.innerHTML = UFS.map(uf => `<option value="${uf}">${uf.toUpperCase()} · ${UFNOME[uf]}</option>`).join("");
+    sel.value = ufAtual;
+    sel.onchange = () => { ufAtual = sel.value; carregar(); };
+  }
+  sel.style.display = cargoAtual.uf ? "none" : "";
+}
+
+ui();
+carregar();
+timer = setInterval(carregar, 20000);
+</script>
+</body>
+</html>
