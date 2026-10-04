@@ -148,18 +148,31 @@
   [data-tema="claro"] .barfill { background: linear-gradient(90deg, #0f766e, #5eead4); }
   [data-tema="claro"] button.tab.on { color: #f3eee6; }
   @media (max-width: 720px) {
-    .wrap { padding: 14px 14px calc(28px + env(safe-area-inset-bottom)); }
+    .wrap { padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
     header.top { display: block; }
-    h1 { font-size: 44px; }
-    .meta { text-align: left; margin-top: 12px; font-size: 13px; }
-    .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
-    .stat { padding: 10px 12px; }
-    .stat strong { font-size: 22px; }
-    .controls { flex-wrap: wrap; margin-left: -14px; margin-right: -14px; padding-left: 14px; padding-right: 14px; }
-    select { width: 100%; }
-    .cand { grid-template-columns: 52px 1fr; gap: 10px; padding: 12px; }
-    .who .nm { font-size: 18px; }
-    .nums .pct { font-size: 24px; }
+    h1 { font-size: 34px; margin-top: 4px; }
+    .kicker { font-size: 10px; }
+    .meta { text-align: left; margin-top: 8px; font-size: 12px; line-height: 1.35; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 10px; }
+    .stat { padding: 8px 10px; border-radius: 12px; }
+    .stat span { font-size: 10px; }
+    .stat strong { font-size: 20px; }
+    .controls { flex-wrap: nowrap; margin: 0 -12px 8px; padding: 8px 12px; gap: 6px; }
+    .tabs { gap: 6px; }
+    button.tab, select { min-height: 40px; padding: 8px 12px; font-size: 13px; }
+    select { width: auto; max-width: 42%; }
+    #brmap { width: 100%; }
+    #brmap .uflab { font-size: 9px; }
+    .mapcard { margin-top: 8px; padding: 12px; }
+    .mapcard b { font-size: 20px; }
+    .note, .banner span { font-size: 13px; }
+    .banner { padding: 12px; }
+    .banner b { font-size: 24px; }
+    .cand { grid-template-columns: 48px 1fr; gap: 10px; padding: 10px; border-radius: 14px; }
+    .cand img, .ph { width: 48px; height: 60px; }
+    .who .nm { font-size: 17px; }
+    .nums .pct { font-size: 22px; }
+    .nums .votos { font-size: 11px; }
     footer { font-size: 12px; }
   }
 </style>
