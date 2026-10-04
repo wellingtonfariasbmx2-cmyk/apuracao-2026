@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08080a" />
+<title>Apuração 2026 · TSE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@380;500;620&display=swap" rel="stylesheet" />
+<style>
+  :root, [data-tema="escuro"] {
+    --bg: #08080a;
+    --paper: #141418;
+    --line: rgba(243,238,230,.14);
+    --ink: #f3eee6;
+    --muted: #a39b90;
+    --cyan: #3ef0dc;
+    --amber: #e8a54b;
+    --track: #26262e;
+    --stat: rgba(20,20,24,.9);
+    --chip: #111;
+    --glow1: rgba(62,240,220,.08);
+    --glow2: rgba(232,165,75,.07);
+    color-scheme: dark;
+  }
+  [data-tema="claro"] {
+    --bg: #f3eee6;
+    --paper: #fffaf4;
+    --line: rgba(28,22,18,.12);
+    --ink: #1c1612;
+    --muted: #6f675f;
+    --cyan: #0f766e;
+    --amber: #b45309;
+    --track: #e7dfd4;
+    --stat: #fffaf4;
+    --chip: #1c1612;
+    --glow1: rgba(15,118,110,.08);
+    --glow2: rgba(194,65,12,.06);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: Outfit, sans-serif;
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 420px at 10% -10%, var(--glow1), transparent 55%),
+      radial-gradient(700px 380px at 100% 0%, var(--glow2), transparent 50%),
+      var(--bg);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 18px 16px calc(36px + env(safe-area-inset-bottom)); }
+  .headrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  button.tema {
+    flex: 0 0 auto; min-height: 40px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink); font: 620 13px Outfit, sans-serif;
+    padding: 0 14px; cursor: pointer;
+  }
+  header.top { display: block; }
+  .kicker {
+    letter-spacing: .18em; text-transform: uppercase; font-size: 11px; color: var(--cyan); font-weight: 620;
+  }
+  h1 {
+    font-family: Fraunces, serif; font-weight: 520; font-size: clamp(40px, 7vw, 72px);
+    line-height: .9; margin: 8px 0 0; letter-spacing: -.03em;
+  }
+  h1 em { font-style: italic; color: var(--amber); }
+  .meta { color: var(--muted); font-size: 13px; text-align: right; line-height: 1.45; }
+  .meta b { color: var(--ink); font-weight: 620; }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 22px 0 18px;
+  }
+  .stat {
+    border: 1px solid var(--line); background: var(--stat); padding: 12px 14px; border-radius: 14px;
+  }
+  .stat span { display: block; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .stat strong { display: block; margin-top: 4px; font-family: Fraunces, serif; font-size: 26px; font-weight: 520; }
+  .bartrack { height: 6px; background: var(--track); border-radius: 99px; margin-top: 14px; overflow: hidden; }
+  .barfill { height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), #9cf7ea); border-radius: 99px; transition: width .6s ease; }
+  .controls {
+    display: flex; gap: 8px; align-items: center; margin: 8px 0 16px;
+    position: sticky; top: 0; z-index: 4; background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px); padding: 8px 0;
+  }
+  .tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  button.tab, select {
+    background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 999px;
+    padding: 10px 14px; font: 500 14px Outfit, sans-serif; cursor: pointer; min-height: 42px;
+  }
+  button.tab { flex: 0 0 auto; }
+  button.tab.on { background: var(--chip); color: var(--bg); border-color: var(--chip); }
+  select { background: var(--paper); max-width: 100%; }
+  .note {
+    border-left: 3px solid var(--amber); padding: 8px 12px; color: var(--muted); font-size: 13px; margin: 0 0 14px;
+  }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .cand {
+    display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px;
+  }
+  .cand img, .ph {
+    width: 56px; height: 72px; object-fit: cover; object-position: top; border-radius: 10px; background: var(--track);
+  }
+  .ph { display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+  .who { min-width: 0; }
+  .row { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .who .nm { font-family: Fraunces, serif; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
+  .who .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .nums { text-align: right; flex: 0 0 auto; }
+  .nums .pct { font-family: Fraunces, serif; font-size: 28px; line-height: 1; }
+  .nums .votos { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .track { position: relative; height: 8px; background: var(--track); border-radius: 99px; margin-top: 10px; }
+  .fill { height: 100%; border-radius: 99px; width: 0; transition: width .5s ease; }
+  .mark50 {
+    position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--amber);
+  }
+  .mark50::after {
+    content: "50%"; position: absolute; top: -16px; left: 4px; font-size: 10px; color: var(--amber); letter-spacing: .06em;
+  }
+  .tag {
+    display: inline-block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    border: 1px solid var(--line); border-radius: 99px; padding: 2px 7px; margin-left: 6px; color: var(--amber);
+  }
+  .griduf { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-top: 18px; }
+  .uf {
+    border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: var(--paper); min-height: 72px;
+  }
+  .uf b { display: block; font-size: 13px; }
+  .uf span { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  footer {
+    margin-top: 28px; color: var(--muted); font-size: 12px; line-height: 1.5;
+  }
+  footer a { color: var(--cyan); }
+  .err { color: #c2410c; }
+  [data-tema="claro"] .barfill { background: linear-gradient(90deg, #0f766e, #5eead4); }
+  [data-tema="claro"] button.tab.on { color: #f3eee6; }
+  @media (max-width: 720px) {
+    .wrap { padding: 14px 14px calc(28px + env(safe-area-inset-bottom)); }
+    header.top { display: block; }
+    h1 { font-size: 44px; }
+    .meta { text-align: left; margin-top: 12px; font-size: 13px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .stat { padding: 10px 12px; }
+    .stat strong { font-size: 22px; }
+    .controls { flex-wrap: wrap; margin-left: -14px; margin-right: -14px; padding-left: 14px; padding-right: 14px; }
+    select { width: 100%; }
+    .cand { grid-template-columns: 52px 1fr; gap: 10px; padding: 12px; }
+    .who .nm { font-size: 18px; }
+    .nums .pct { font-size: 24px; }
+    .griduf { grid-template-columns: repeat(3, 1fr); }
+    footer { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="headrow">
+      <div class="kicker">Eleições 2026 · 1º turno · TSE</div>
+      <button class="tema" id="tema" type="button" aria-pressed="false">Modo claro</button>
+    </div>
+    <h1>Apuração<br><em>ao vivo.</em></h1>
+    <div class="meta" id="meta">
+      <div>Brasília <b id="clock">--:--:--</b></div>
+      <div>Arquivo TSE <b id="stamp">—</b></div>
+      <div id="status">conectando…</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><span>Urnas totalizadas</span><strong id="urnas">—</strong></div>
+    <div class="stat"><span>Seções</span><strong id="secoes">—</strong></div>
+    <div class="stat"><span>Comparecimento</span><strong id="comp">—</strong></div>
+    <div class="stat"><span>Votos válidos</span><strong id="validos">—</strong></div>
+  </div>
+  <div class="bartrack"><div class="barfill" id="prog"></div></div>
+
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <select id="uf" aria-label="Estado"></select>
+  </div>
+  <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
+  <div class="list" id="list"></div>
+  <div id="ufs"></div>
+  <footer>
+    Fonte: arquivos JSON públicos do Tribunal Superior Eleitoral
+    (<a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">resultados.tse.jus.br</a>),
+    eleição federal 6257 e estadual 6259, pleito 3220 de 04/10/2026.
+    Esta tela só lê e mostra esses arquivos — não é o portal oficial e não altera números.
+    Atualização automática a cada 20 segundos. Última leitura local: <span id="lido">—</span>.
+    <span id="erro" class="err"></span>
+  </footer>
+</div>
+<script>
+const UFS = ["ac","al","am","ap","ba","ce","df","es","go","ma","mg","ms","mt","pa","pb","pe","pi","pr","rj","rn","ro","rr","rs","sc","se","sp","to"];
+const UFNOME = {ac:"Acre",al:"Alagoas",am:"Amazonas",ap:"Amapá",ba:"Bahia",ce:"Ceará",df:"Distrito Federal",es:"Espírito Santo",go:"Goiás",ma:"Maranhão",mg:"Minas Gerais",ms:"Mato Grosso do Sul",mt:"Mato Grosso",pa:"Pará",pb:"Paraíba",pe:"Pernambuco",pi:"Piauí",pr:"Paraná",rj:"Rio de Janeiro",rn:"Rio Grande do Norte",ro:"Rondônia",rr:"Roraima",rs:"Rio Grande do Sul",sc:"Santa Catarina",se:"Sergipe",sp:"São Paulo",to:"Tocantins"};
+const CARGOS = [
+  {id:"pres", nome:"Presidente", ele:"6257", cargo:"0001", uf:"br", fotoEle:"6257"},
+  {id:"gov", nome:"Governador", ele:"6259", cargo:"0003", fotoEle:"6259"},
+  {id:"sen", nome:"Senado", ele:"6259", cargo:"0005", fotoEle:"6259"},
+  {id:"df", nome:"Dep. Federal", ele:"6259", cargo:"0006", fotoEle:"6259", top:12},
+  {id:"de", nome:"Dep. Estadual", ele:"6259", cargo:"0007", fotoEle:"6259", top:12}
+];
+const CORES = {PT:"#e11d2e",PL:"#3b82f6",PSD:"#22a06b",NOVO:"#f97316",MDB:"#14b8a6",AVANTE:"#f5b942","MISSÃO":"#e85d4c",UP:"#b91c1c",PCB:"#ef4444",PSTU:"#d97706",PCO:"#9f1239",DC:"#0891b2",PRTB:"#0284c7",DEMOCRATA:"#94a3b8",PSB:"#fb7185","UNIÃO":"#2563eb",PP:"#1d4ed8",REPUBLICANOS:"#1e40af",PDT:"#ea580c",PSOL:"#eab308",PODE:"#60a5fa",PSDB:"#38bdf8",PCDOB:"#dc2626",PV:"#16a34a",REDE:"#65a30d"};
+const TSE = "https://resultados.tse.jus.br";
+let cargoAtual = CARGOS[0];
+let ufAtual = "ma";
+let timer;
+
+function num(v){ return Number(String(v||"0").replace(/\./g,"").replace(",",".")) || 0; }
+function fmt(n){ return Number(n||0).toLocaleString("pt-BR"); }
+function pct(v){ const n = num(v); return n.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + "%"; }
+
+function tick(){
+  const d = new Date(Date.now() + (new Date().getTimezoneOffset()+180)*60000);
+  // display local clock is fine; label says Brasília only if user is in BRT. Use America/Sao_Paulo.
+  document.getElementById("clock").textContent = new Date().toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo"});
+}
+setInterval(tick, 1000); tick();
+
+function aplicarTema(tema){
+  document.documentElement.dataset.tema = tema;
+  try { localStorage.setItem("apuracao-tema", tema); } catch (e) {}
+  const b = document.getElementById("tema");
+  const claro = tema === "claro";
+  b.textContent = claro ? "Modo escuro" : "Modo claro";
+  b.setAttribute("aria-pressed", claro ? "true" : "false");
+  document.querySelector('meta[name="theme-color"]').content = claro ? "#f3eee6" : "#08080a";
+}
+let temaInicial = "escuro";
+try { temaInicial = localStorage.getItem("apuracao-tema") || (matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "escuro"); } catch (e) {}
+aplicarTema(temaInicial);
+document.getElementById("tema").onclick = () => aplicarTema(document.documentElement.dataset.tema === "claro" ? "escuro" : "claro");
+
+async function getJSON(path){
+  const url = TSE + path + (path.includes("?")?"&":"?") + "t=" + Date.now();
+  try {
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } catch (err) {
+    const proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+    const r2 = await fetch(proxy, {cache:"no-store"});
+    if (!r2.ok) throw new Error("sem acesso ao TSE (" + err.message + ")");
+    const text = await r2.text();
+    return JSON.parse(text);
+  }
+}
+
+function foto(c, cand){
+  const uf = c.fotoEle === "6257" ? "br" : ufAtual;
+  return `${TSE}/oficial/ele2026/${c.fotoEle}/fotos/${uf}/${cand.sqcand}.jpeg`;
+}
+
+function candidatos(data){
+  const out = [];
+  const carg = (data.carg || [])[0];
+  if (!carg) return out;
+  for (const agr of carg.agr || []) {
+    for (const par of agr.par || []) {
+      for (const cand of par.cand || []) {
+        out.push({
+          nome: cand.nmu || cand.nm,
+          numero: cand.n,
+          partido: par.sg,
+          votos: num(cand.vap),
+          pvap: cand.pvap,
+          sqcand: cand.sqcand,
+          vice: (cand.vs && cand.vs[0] && (cand.vs[0].nmu || cand.vs[0].nm)) || ""
+        });
+      }
+    }
+  }
+  out.sort((a,b) => b.votos - a.votos);
+  return out;
+}
+
+function render(data){
+  const s = data.s || {};
+  const e = data.e || {};
+  const v = data.v || {};
+  const urnas = num(s.pstn || s.pst);
+  document.getElementById("urnas").textContent = pct(s.pst || s.pstn);
+  document.getElementById("secoes").textContent = fmt(s.st) + " / " + fmt(s.ts);
+  document.getElementById("comp").textContent = e.pc ? pct(e.pc) : "—";
+  document.getElementById("validos").textContent = fmt(v.vv);
+  document.getElementById("prog").style.width = Math.max(0, Math.min(100, urnas)) + "%";
+  document.getElementById("stamp").textContent = (data.dg || "—") + " " + (data.hg || "");
+  const final = data.tf === "s" || urnas >= 100;
+  document.getElementById("status").textContent = urnas <= 0 ? "aguardando os primeiros boletins" : (final ? "totalização encerrada neste arquivo" : "apuração parcial");
+
+  let lista = candidatos(data);
+  const top = cargoAtual.top || lista.length;
+  lista = lista.slice(0, top);
+  const lider = lista[0];
+  const maior = Math.max(...lista.map(c => num(c.pvap)), 1);
+  const note = document.getElementById("note");
+  if (urnas <= 0) {
+    note.textContent = "A divulgação oficial começa depois das 17h (Brasília). A tela continua lendo o arquivo do TSE e preenche sozinha quando os boletins entrarem.";
+  } else if (cargoAtual.id === "pres") {
+    note.textContent = lider && num(lider.pvap) > 50
+      ? lider.nome + " está acima de 50% dos votos válidos neste recorte. Confira o encerramento no TSE antes de tratar como resultado final."
+      : "Ninguém acima de 50% dos votos válidos neste recorte. Se permanecer assim até o fim, os dois mais votados vão ao 2º turno em 25/10.";
+  } else if (cargoAtual.id === "sen") {
+    note.textContent = "Senado: duas vagas por estado. A ordem abaixo é a dos votos já totalizados pelo TSE.";
+  } else {
+    note.textContent = "Percentuais publicados pelo TSE. Em cargos proporcionais, a lista mostra os mais votados até agora — não é a lista de eleitos.";
+  }
+
+  document.getElementById("list").innerHTML = lista.map((c, i) => {
+    const cor = CORES[c.partido] || "#c2410c";
+    const w = Math.max(1.5, (num(c.pvap) / Math.max(maior, 50)) * 100);
+    const tag = (cargoAtual.id === "pres" && i === 0 && num(c.pvap) > 50) ? '<span class="tag">acima de 50%</span>'
+      : (cargoAtual.id === "sen" && i < 2 && c.votos > 0) ? '<span class="tag">na frente</span>' : "";
+    return `<article class="cand">
+      <img alt="" src="${foto(cargoAtual, c)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${c.numero}'}))" />
+      <div class="who">
+        <div class="row">
+          <div>
+            <div class="nm">${c.nome}${tag}</div>
+            <div class="sub">${c.partido} · ${c.numero}${c.vice ? " · vice " + c.vice : ""}</div>
+          </div>
+          <div class="nums">
+            <div class="pct">${c.pvap && c.pvap !== "0,00" ? pct(c.pvap) : (c.votos ? "—" : "0%")}</div>
+            <div class="votos">${fmt(c.votos)} votos</div>
+          </div>
+        </div>
+        <div class="track"><div class="fill" style="width:${w}%;background:${cor}"></div>${cargoAtual.id==="pres"?'<div class="mark50"></div>':""}</div>
+      </div>
+    </article>`;
+  }).join("") || "<div class='note'>Ainda sem candidatos neste arquivo.</div>";
+}
+
+async function mapa(){
+  if (cargoAtual.id !== "pres") { document.getElementById("ufs").innerHTML = ""; return; }
+  const box = document.getElementById("ufs");
+  if (!box.dataset.ready) box.innerHTML = "<div class='kicker' style='margin-top:22px'>Quem lidera em cada estado</div><div class='griduf' id='griduf'></div>";
+  box.dataset.ready = "1";
+  const grid = document.getElementById("griduf");
+  const cards = {};
+  UFS.forEach(uf => {
+    if (!cards[uf]) {
+      const el = document.createElement("div");
+      el.className = "uf";
+      el.innerHTML = `<b>${uf.toUpperCase()}</b><span>…</span>`;
+      grid.appendChild(el);
+      cards[uf] = el;
+    }
+  });
+  await Promise.all(UFS.map(async uf => {
+    try {
+      const data = await getJSON(`/oficial/ele2026/6257/dados/${uf}/${uf}-c0001-e006257-u.json`);
+      const cs = candidatos(data);
+      const l = cs[0];
+      const el = cards[uf];
+      if (!l || l.votos === 0) { el.querySelector("span").textContent = "sem votos"; return; }
+      el.style.borderColor = CORES[l.partido] || "#c2410c";
+      el.querySelector("span").textContent = l.nome.split(" ").slice(-1)[0] + " " + pct(l.pvap);
+    } catch (e) {
+      cards[uf].querySelector("span").textContent = "—";
+    }
+  }));
+}
+
+async function carregar(){
+  const uf = cargoAtual.uf || ufAtual;
+  const ele = cargoAtual.ele;
+  const path = `/oficial/ele2026/${ele}/dados/${uf}/${uf}-c${cargoAtual.cargo}-e${ele.padStart(6,"0")}-u.json`;
+  document.getElementById("erro").textContent = "";
+  try {
+    const data = await getJSON(path);
+    render(data);
+    document.getElementById("lido").textContent = new Date().toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo"});
+    if (cargoAtual.id === "pres") mapa();
+    else document.getElementById("ufs").innerHTML = "";
+  } catch (e) {
+    document.getElementById("erro").textContent = " Falha ao ler o TSE: " + e.message;
+    document.getElementById("status").textContent = "sem atualização";
+  }
+}
+
+function ui(){
+  document.getElementById("tabs").innerHTML = CARGOS.map(c =>
+    `<button class="tab${c.id===cargoAtual.id?" on":""}" data-id="${c.id}">${c.nome}</button>`).join("");
+  document.getElementById("tabs").onclick = (ev) => {
+    const b = ev.target.closest("button");
+    if (!b) return;
+    cargoAtual = CARGOS.find(c => c.id === b.dataset.id);
+    document.getElementById("uf").style.display = cargoAtual.uf ? "none" : "";
+    document.getElementById("ufs").dataset.ready = "";
+    ui();
+    carregar();
+  };
+  const sel = document.getElementById("uf");
+  if (!sel.options.length) {
+    sel.innerHTML = UFS.map(uf => `<option value="${uf}">${uf.toUpperCase()} · ${UFNOME[uf]}</option>`).join("");
+    sel.value = ufAtual;
+    sel.onchange = () => { ufAtual = sel.value; carregar(); };
+  }
+  sel.style.display = cargoAtual.uf ? "none" : "";
+}
+
+ui();
+carregar();
+timer = setInterval(carregar, 20000);
+</script>
+</body>
+</html>
