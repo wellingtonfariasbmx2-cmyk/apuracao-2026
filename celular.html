@@ -141,6 +141,9 @@
   .mapcard span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 99px; margin-right: 6px; }
+  .faltam { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; width: 100%; margin-top: 8px; }
+  .faltam span { font-size: 12px; color: var(--muted); }
+  .faltam b { color: var(--ink); font-weight: 650; }
   footer {
     margin-top: 28px; color: var(--muted); font-size: 12px; line-height: 1.5;
   }
@@ -400,14 +403,15 @@ function render(data){
 const LIDER = {};
 let ufMapa = "sp";
 function pintar(uf){
-  const info = LIDER[uf];
+  const info = LIDER[uf] || {};
   document.querySelectorAll("#brmap path").forEach(p => p.classList.toggle("on", p.dataset.uf === uf));
   const card = document.getElementById("mapcard");
-  if (!info || !info.votos) {
-    card.innerHTML = `<b>${UFNOME[uf]}</b><span>Ainda sem votos neste arquivo</span>`;
+  const falta = info.faltam != null ? `Faltam ${fmt(info.faltam)} urnas de ${fmt(info.total)} (${info.pfalta || "—"})` : "Urnas ainda sem leitura";
+  if (!info.votos) {
+    card.innerHTML = `<b>${UFNOME[uf]}</b><span>${falta}</span><span>Ainda sem votos neste arquivo</span>`;
     return;
   }
-  card.innerHTML = `<b>${UFNOME[uf]}</b><span style="color:${info.cor}">${info.nome}</span><span>${info.partido} · ${info.pct} dos votos válidos</span>`;
+  card.innerHTML = `<b>${UFNOME[uf]}</b><span style="color:${info.cor}">${info.nome}</span><span>${info.partido} · ${info.pct} dos votos válidos</span><span>${falta}</span>`;
 }
 function ligarMapa(){
   const svg = document.getElementById("brmap");
@@ -428,17 +432,30 @@ async function mapa(){
   await Promise.all(UFS.map(async uf => {
     try {
       const data = await getJSON(`/oficial/ele2026/6257/dados/${uf}/${uf}-c0001-e006257-u.json`);
+      const s = data.s || {};
       const l = candidatos(data)[0];
       const path = document.getElementById("uf-" + uf);
-      if (!l || !l.votos) { LIDER[uf] = {votos:0}; if (path) path.style.fill = ""; return; }
+      const faltam = num(s.snt);
+      const total = num(s.ts);
+      const lab = document.querySelector('#brmap text[data-uf="'+uf+'"]');
+      if (lab) lab.textContent = uf.toUpperCase() + " " + (faltam ? fmt(faltam) : "0");
+      if (!l || !l.votos) {
+        LIDER[uf] = {votos:0, faltam, total, pfalta: s.psnt ? pct(s.psnt) : ""};
+        if (path) path.style.fill = "";
+        return;
+      }
       const cor = CORES[l.partido] || "#c2410c";
-      LIDER[uf] = {nome: l.nome, partido: l.partido, pct: pct(l.pvap), cor, votos: l.votos};
+      LIDER[uf] = {nome: l.nome, partido: l.partido, pct: pct(l.pvap), cor, votos: l.votos, faltam, total, pfalta: s.psnt ? pct(s.psnt) : ""};
       if (path) path.style.fill = cor;
     } catch (e) {}
   }));
   const partes = {};
   Object.values(LIDER).forEach(i => { if (i.partido) partes[i.partido] = i.cor; });
-  document.getElementById("legend").innerHTML = Object.entries(partes).map(([p,c]) => `<span><i style="background:${c}"></i>${p}</span>`).join("");
+  document.getElementById("legend").innerHTML = Object.entries(partes).map(([p,c]) => `<span><i style="background:${c}"></i>${p}</span>`).join("")
+    + '<div class="faltam">' + UFS.map(uf => {
+        const i = LIDER[uf] || {};
+        return `<span><b>${uf.toUpperCase()}</b> ${i.faltam != null ? fmt(i.faltam) : "—"}</span>`;
+      }).join("") + '</div>';
   if (!LIDER[ufMapa] || !LIDER[ufMapa].votos) {
     const algum = Object.entries(LIDER).find(([,i]) => i.votos);
     if (algum) ufMapa = algum[0];
