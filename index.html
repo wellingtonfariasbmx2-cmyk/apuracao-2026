@@ -102,8 +102,6 @@
   .analise .k { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); font-weight: 650; }
   .analise h2 { margin: 4px 0 8px; font-family: Fraunces, serif; font-size: clamp(22px, 4vw, 30px); font-weight: 520; line-height: 1.05; }
   .analise p { margin: 0 0 8px; color: var(--muted); font-size: 14px; line-height: 1.45; }
-  .zap { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 14px; background: #128C7E; color: #fff; border: 0; border-radius: 999px; padding: 12px 16px; font: 650 14px Outfit, sans-serif; cursor: pointer; }
-  .zap:active { transform: translateY(1px); }
   .analise b { color: var(--ink); font-weight: 650; }
   .list { display: flex; flex-direction: column; gap: 10px; }
   .cand {
@@ -229,7 +227,6 @@
 
   <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
   <div class="analise" id="analise"><div class="k">Leitura do sistema</div><h2>Calculando com o que já entrou</h2><p>Usa votos, comparecimento e urnas que faltam. Não é pesquisa.</p></div>
-  <button class="zap" id="zap" type="button">Mandar boletim no WhatsApp</button>
   <div class="list" id="list"></div>
   
   <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
@@ -366,26 +363,6 @@ function analise(data, lista){
   box.innerHTML = `<div class="k">Leitura do sistema · não é o TSE</div><h2>${titulo}</h2><p>${texto}${geo} Comparecimento usado: ${pct(comp*100)}. Válidos sobre votos: ${pct(validosPorVoto*100)}.</p>`;
 }
 
-function boletim(){
-  const data = ultimo;
-  const lista = ultimaLista || [];
-  if (!data || !lista.length) return "Apuração ainda sem números.";
-  const s = data.s || {};
-  const linhas = lista.slice(0, 5).map((c, i) => `${i + 1}. ${c.nome} (${c.partido}) ${c.pvap}% · ${fmt(c.votos)} votos`).join("\n");
-  const aviso = document.querySelector("#banner b");
-  return [
-    `Apuração 2026 · ${cargoAtual.nome} · ${(cargoAtual.uf || ufAtual).toUpperCase()}`,
-    `Urnas ${s.pst || s.pstn || "—"}% · arquivo ${data.dg || ""} ${data.hg || ""}`,
-    aviso ? aviso.textContent : "",
-    linhas,
-    "Fonte: arquivos públicos do TSE. Não é o portal oficial."
-  ].filter(Boolean).join("\n");
-}
-function mandarZap(){
-  const texto = boletim();
-  const url = "https://wa.me/?text=" + encodeURIComponent(texto);
-  window.open(url, "_blank", "noopener");
-}
 function candidatos(data){
   const out = [];
   const carg = (data.carg || [])[0];
@@ -622,7 +599,6 @@ function ui(){
   sel.style.display = cargoAtual.uf ? "none" : "";
 }
 
-document.getElementById("zap").onclick = mandarZap;
 ui();
 carregar();
 timer = setInterval(carregar, 20000);
