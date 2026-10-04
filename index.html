@@ -91,9 +91,13 @@
   button.tab { flex: 0 0 auto; }
   button.tab.on { background: var(--chip); color: var(--bg); border-color: var(--chip); }
   select { background: var(--paper); max-width: 100%; }
-  .note {
-    border-left: 3px solid var(--amber); padding: 8px 12px; color: var(--muted); font-size: 13px; margin: 0 0 14px;
+  .banner {
+    margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--paper);
   }
+  .banner b { display: block; font-family: Fraunces, serif; font-size: clamp(22px, 4vw, 34px); font-weight: 520; line-height: 1.05; }
+  .banner span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+  .banner.eleito { border-color: var(--cyan); }
+  .banner.turno { border-color: var(--amber); }
   .list { display: flex; flex-direction: column; gap: 10px; }
   .cand {
     display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center;
@@ -181,6 +185,7 @@
     <select id="uf" aria-label="Estado"></select>
   </div>
   <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
+  <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
   <div class="list" id="list"></div>
   <div id="ufs"></div>
   <footer>
@@ -267,6 +272,8 @@ function candidatos(data){
           votos: num(cand.vap),
           pvap: cand.pvap,
           sqcand: cand.sqcand,
+          eleito: cand.e === "s" || /eleit/i.test(cand.st || ""),
+          st: cand.st || "",
           vice: (cand.vs && cand.vs[0] && (cand.vs[0].nmu || cand.vs[0].nm)) || ""
         });
       }
@@ -288,30 +295,54 @@ function render(data){
   document.getElementById("prog").style.width = Math.max(0, Math.min(100, urnas)) + "%";
   document.getElementById("stamp").textContent = (data.dg || "—") + " " + (data.hg || "");
   const final = data.tf === "s" || urnas >= 100;
+  const maioria = cargoAtual.id === "pres" || cargoAtual.id === "gov";
   document.getElementById("status").textContent = urnas <= 0 ? "aguardando os primeiros boletins" : (final ? "totalização encerrada neste arquivo" : "apuração parcial");
 
   let lista = candidatos(data);
   const top = cargoAtual.top || lista.length;
   lista = lista.slice(0, top);
   const lider = lista[0];
+  const segundo = lista[1];
   const maior = Math.max(...lista.map(c => num(c.pvap)), 1);
+  const oficiais = lista.filter(c => c.eleito);
+  const maioriaFechada = maioria && final && lider && num(lider.pvap) > 50;
+  const segundoTurno = maioria && final && lider && num(lider.pvap) <= 50;
+  const banner = document.getElementById("banner");
+  banner.className = "banner";
+  if (oficiais.length) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>Eleito: ${oficiais.map(c => c.nome).join(" · ")}</b><span>Situação gravada pelo TSE neste arquivo${oficiais[0].st ? " (" + oficiais[0].st + ")" : ""}.</span>`;
+  } else if (maioriaFechada) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>Eleito no 1º turno: ${lider.nome}</b><span>Totalização deste arquivo fechada e mais de 50% dos votos válidos. O carimbo “eleito” do TSE pode aparecer em seguida.</span>`;
+  } else if (segundoTurno) {
+    banner.classList.add("turno");
+    banner.innerHTML = `<b>2º turno: ${lider.nome} e ${segundo ? segundo.nome : "—"}</b><span>Ninguém passou de 50% dos votos válidos com a totalização fechada. Segundo turno em 25/10.</span>`;
+  } else if (urnas <= 0) {
+    banner.innerHTML = `<b>Aguardando o carimbo de eleito</b><span>A divulgação oficial começa depois das 17h. Ninguém está eleito enquanto o arquivo não fechar.</span>`;
+  } else if (maioria && lider && num(lider.pvap) > 50) {
+    banner.innerHTML = `<b>Ainda não eleito</b><span>${lider.nome} passa de 50% neste recorte, com ${pct(urnas)} das urnas. Isso muda. Eleito só entra quando a totalização fechar ou o TSE gravar a situação.</span>`;
+  } else {
+    banner.innerHTML = `<b>Ninguém eleito neste arquivo</b><span>${maioria ? "Presidente e governador precisam de mais de 50% dos votos válidos no fim da apuração." : "Deputado e senador só aparecem como eleitos quando o TSE gravar a situação."} Agora: ${pct(urnas)} das urnas.</span>`;
+  }
   const note = document.getElementById("note");
   if (urnas <= 0) {
-    note.textContent = "A divulgação oficial começa depois das 17h (Brasília). A tela continua lendo o arquivo do TSE e preenche sozinha quando os boletins entrarem.";
-  } else if (cargoAtual.id === "pres") {
-    note.textContent = lider && num(lider.pvap) > 50
-      ? lider.nome + " está acima de 50% dos votos válidos neste recorte. Confira o encerramento no TSE antes de tratar como resultado final."
-      : "Ninguém acima de 50% dos votos válidos neste recorte. Se permanecer assim até o fim, os dois mais votados vão ao 2º turno em 25/10.";
+    note.textContent = "A tela continua lendo o arquivo do TSE e preenche sozinha quando os boletins entrarem.";
+  } else if (maioria) {
+    note.textContent = "A linha âmbar é a maioria absoluta: mais de 50% dos votos válidos. Acima dela no meio da apuração não é eleição.";
   } else if (cargoAtual.id === "sen") {
-    note.textContent = "Senado: duas vagas por estado. A ordem abaixo é a dos votos já totalizados pelo TSE.";
+    note.textContent = "Senado: duas vagas por estado. “Eleito” só aparece com a situação do TSE, não só por estar na frente.";
   } else {
-    note.textContent = "Percentuais publicados pelo TSE. Em cargos proporcionais, a lista mostra os mais votados até agora — não é a lista de eleitos.";
+    note.textContent = "Cargo proporcional: a lista é de mais votados. Eleito só quando o TSE gravar isso — voto de legenda e quociente entram nessa conta.";
   }
 
   document.getElementById("list").innerHTML = lista.map((c, i) => {
     const cor = CORES[c.partido] || "#c2410c";
     const w = Math.max(1.5, (num(c.pvap) / Math.max(maior, 50)) * 100);
-    const tag = (cargoAtual.id === "pres" && i === 0 && num(c.pvap) > 50) ? '<span class="tag">acima de 50%</span>'
+    const tag = c.eleito || (maioriaFechada && i === 0)
+      ? '<span class="tag">eleito</span>'
+      : (segundoTurno && i < 2) ? '<span class="tag">2º turno</span>'
+      : (maioria && i === 0 && num(c.pvap) > 50) ? '<span class="tag">acima de 50% agora</span>'
       : (cargoAtual.id === "sen" && i < 2 && c.votos > 0) ? '<span class="tag">na frente</span>' : "";
     return `<article class="cand">
       <img alt="" src="${foto(cargoAtual, c)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${c.numero}'}))" />
@@ -326,7 +357,7 @@ function render(data){
             <div class="votos">${fmt(c.votos)} votos</div>
           </div>
         </div>
-        <div class="track"><div class="fill" style="width:${w}%;background:${cor}"></div>${cargoAtual.id==="pres"?'<div class="mark50"></div>':""}</div>
+        <div class="track"><div class="fill" style="width:${w}%;background:${cor}"></div>${maioria?'<div class="mark50"></div>':""}</div>
       </div>
     </article>`;
   }).join("") || "<div class='note'>Ainda sem candidatos neste arquivo.</div>";
