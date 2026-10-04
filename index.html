@@ -340,16 +340,25 @@ function analise(data, lista){
       geo = ` Se o que falta em cada estado repetir o placar daquele estado, ${a.nome} fecha em ${pa.toFixed(1).replace(".",",")}% e ${b ? b.nome : "o segundo"} em ${pb.toFixed(1).replace(".",",")}%.`;
     }
   }
+  const teto = faltamEle;
+  const naoVira = b && a.votos > b.votos + teto;
+  const maioriaTravada = a.votos > 0.5 * (validos + teto);
   let titulo, texto;
-  if (fatia <= 0) {
+  if (naoVira) {
+    titulo = b.nome + " já não vira";
+    texto = `${a.nome} tem ${fmt(a.votos - b.votos)} votos à frente. Faltam ${fmt(teto)} eleitores. Nem se todos votassem em ${b.nome}, a conta não fecha.`;
+  } else if (maioriaTravada && (cargoAtual.id === "pres" || cargoAtual.id === "gov")) {
     titulo = a.nome + " já não perde o 1º turno";
-    texto = `Mesmo com zero votos no que falta, fica acima de 50% dos válidos. Faltam cerca de ${fmt(resto)} votos válidos, estimados pelo comparecimento já visto.`;
+    texto = `Mesmo sem mais nenhum voto, fica acima de 50% dos válidos. O teto do que falta é ${fmt(teto)} eleitores.`;
+  } else if (fatia <= 0) {
+    titulo = "No comparecimento atual, " + a.nome + " segura o 1º turno";
+    texto = `Pelo comparecimento já visto, faltam cerca de ${fmt(resto)} votos válidos. Isso ainda não é trava: o teto real é ${fmt(teto)} eleitores.`;
   } else if (fatia >= 1) {
     titulo = "1º turno já não fecha para " + a.nome;
-    texto = `Nem com todos os cerca de ${fmt(resto)} votos válidos que faltam ele passa de 50%.`;
+    texto = `Nem com todos os cerca de ${fmt(resto)} votos válidos estimados ele passa de 50%.`;
   } else {
-    titulo = "No ritmo atual, " + a.nome + " termina na frente";
-    texto = `Projeção se o resto do país votar como o que já entrou: ${a.nome} ${ritmo.toFixed(1).replace(".",",")}%${b ? " e " + b.nome + " " + ritmoB.toFixed(1).replace(".",",") + "%" : ""}. Ainda faltam cerca de ${fmt(resto)} votos válidos (${pct(faltamEle && num(e.te) ? faltamEle / num(e.te) * 100 : 0)} do eleitorado). Para cair abaixo de 50% e ir ao 2º turno, ${a.nome} precisaria ficar com menos de ${(fatia*100).toFixed(1).replace(".",",")}% do que falta.`;
+    titulo = "Ainda pode virar";
+    texto = `No ritmo atual, ${a.nome} fecha em ${ritmo.toFixed(1).replace(".",",")}%${b ? " e " + b.nome + " em " + ritmoB.toFixed(1).replace(".",",") + "%" : ""}. Para o segundo passar, precisa de mais de ${fmt(a.votos - (b ? b.votos : 0))} votos no que falta. Teto: ${fmt(teto)} eleitores. Ainda cabe.`;
   }
   box.innerHTML = `<div class="k">Leitura do sistema · não é o TSE</div><h2>${titulo}</h2><p>${texto}${geo} Comparecimento usado: ${pct(comp*100)}. Válidos sobre votos: ${pct(validosPorVoto*100)}.</p>`;
 }
@@ -415,8 +424,14 @@ function render(data){
     banner.innerHTML = `<b>2º turno: ${lider.nome} e ${segundo ? segundo.nome : "—"}</b><span>Ninguém passou de 50% dos votos válidos com a totalização fechada. Segundo turno em 25/10.</span>`;
   } else if (urnas <= 0) {
     banner.innerHTML = `<b>Aguardando o carimbo de eleito</b><span>A divulgação oficial começa depois das 17h. Ninguém está eleito enquanto o arquivo não fechar.</span>`;
+  } else if (maioria && lider && segundo && lider.votos > segundo.votos + num((data.e||{}).esnt)) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>Já não vira: ${lider.nome}</b><span>Nem se todo eleitor que falta votasse em ${segundo.nome}, a diferença não fecha. Ainda não é o carimbo do TSE.</span>`;
+  } else if (maioria && lider && lider.votos > 0.5 * (num((data.v||{}).vv) + num((data.e||{}).esnt))) {
+    banner.classList.add("eleito");
+    banner.innerHTML = `<b>1º turno fechado para ${lider.nome}</b><span>Mesmo com zero votos no que falta, fica acima de 50% dos válidos. O outro não alcança a maioria.</span>`;
   } else if (maioria && lider && num(lider.pvap) > 50) {
-    banner.innerHTML = `<b>Ainda não eleito</b><span>${lider.nome} passa de 50% neste recorte, com ${pct(urnas)} das urnas. Isso muda. Eleito só entra quando a totalização fechar ou o TSE gravar a situação.</span>`;
+    banner.innerHTML = `<b>Na frente, mas ainda vira</b><span>${lider.nome} passa de 50% agora, com ${pct(urnas)} das urnas. O que falta ainda cabe no outro.</span>`;
   } else {
     banner.innerHTML = `<b>Ninguém eleito neste arquivo</b><span>${maioria ? "Presidente e governador precisam de mais de 50% dos votos válidos no fim da apuração." : "Deputado e senador só aparecem como eleitos quando o TSE gravar a situação."} Agora: ${pct(urnas)} das urnas.</span>`;
   }
