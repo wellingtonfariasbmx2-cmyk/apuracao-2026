@@ -227,6 +227,7 @@
 
   <div class="banner" id="banner"><b>Aguardando o carimbo de eleito</b><span>A tela só marca eleito quando o TSE gravar isso no arquivo, ou quando a totalização deste cargo fechar.</span></div>
   <div class="analise" id="analise"><div class="k">Leitura do sistema</div><h2>Calculando com o que já entrou</h2><p>Usa votos, comparecimento e urnas que faltam. Não é pesquisa.</p></div>
+  <div class="analise" id="fechada"><div class="k">Análise dos 100%</div><h2>Esperando a totalização fechar</h2><p>Quando o arquivo nacional chegar a 100% das urnas, a tela separa os estados do Flávio e do Lula e faz a conta dos outros votos.</p></div>
   <div class="list" id="list"></div>
   
   <div class="note" id="note">Os percentuais são os publicados pelo TSE (votos válidos). Maioria absoluta no 1º turno: mais de 50%.</div>
@@ -363,6 +364,50 @@ function analise(data, lista){
   box.innerHTML = `<div class="k">Leitura do sistema · não é o TSE</div><h2>${titulo}</h2><p>${texto}${geo} Comparecimento usado: ${pct(comp*100)}. Válidos sobre votos: ${pct(validosPorVoto*100)}.</p>`;
 }
 
+
+let fechou = false;
+async function analiseFechada(data){
+  const box = document.getElementById("fechada");
+  if (!box || cargoAtual.id !== "pres") { if (box) box.hidden = cargoAtual.id !== "pres"; return; }
+  box.hidden = false;
+  const s = data.s || {};
+  const cem = data.tf === "s" || num(s.pstn || s.pst) >= 100 || num(s.st) >= num(s.ts);
+  if (!cem) {
+    box.innerHTML = `<div class="k">Análise dos 100%</div><h2>Esperando a totalização fechar</h2><p>Agora está em ${pct(s.pst || s.pstn)}. Faltam ${fmt(s.snt)} seções. A separação por estado e a conta dos outros votos só entram em 100%.</p>`;
+    return;
+  }
+  if (fechou) return;
+  box.innerHTML = `<div class="k">Análise dos 100%</div><h2>Lendo os estados</h2><p>Totalização fechada. Montando a lista.</p>`;
+  const linhas = [];
+  for (const uf of UFS) {
+    const d = await getJSON(`/oficial/ele2026/6257/dados/${uf}/${uf}-c0001-e006257-u.json`);
+    const cs = candidatos(d);
+    const f = cs.find(c => /FLAVIO/.test(c.nome) && /BOLSONARO/.test(c.nome));
+    const l = cs.find(c => c.nome === "LULA");
+    if (!f || !l) continue;
+    linhas.push({uf: uf.toUpperCase(), nome: UFNOME[uf], f, l, lado: f.votos >= l.votos ? "f" : "l"});
+  }
+  const nac = candidatos(data);
+  const fv = nac.find(c => /FLAVIO/.test(c.nome) && /BOLSONARO/.test(c.nome));
+  const lv = nac.find(c => c.nome === "LULA");
+  const vv = num((data.v || {}).vv);
+  const outros = vv - (fv ? fv.votos : 0) - (lv ? lv.votos : 0);
+  const item = (x) => `<span><b>${x.uf}</b> ${x.nome}<br>${x.lado==="f" ? pct(x.f.pvap)+" · "+fmt(x.f.votos) : pct(x.l.pvap)+" · "+fmt(x.l.votos)} <em>contra ${x.lado==="f" ? pct(x.l.pvap) : pct(x.f.pvap)}</em></span>`;
+  const deF = linhas.filter(x => x.lado==="f").sort((a,b) => num(b.f.pvap)-num(a.f.pvap));
+  const deL = linhas.filter(x => x.lado==="l").sort((a,b) => num(b.l.pvap)-num(a.l.pvap));
+  const pf = vv ? ((fv.votos+outros)/vv*100) : 0;
+  const pl = vv ? ((lv.votos+outros)/vv*100) : 0;
+  box.innerHTML = `<div class="k">Análise dos 100% · soma do TSE, não é transferência de voto</div>
+    <h2>Onde cada um ficou na frente</h2>
+    <p>Arquivo ${data.dg || ""} ${data.hg || ""}. Votos válidos: ${fmt(vv)}.</p>
+    <div class="rh">Flávio na frente <em>${deF.length} estados</em></div>
+    <div class="faltam">${deF.map(item).join("")}</div>
+    <div class="rh">Lula na frente <em>${deL.length} estados</em></div>
+    <div class="faltam">${deL.map(item).join("")}</div>
+    <h2>Se os outros votos fossem todos para um</h2>
+    <p>Outros candidatos: ${fmt(outros)} votos válidos. Se fossem para ${fv.nome}: ${fmt(fv.votos+outros)} (${pf.toFixed(2).replace(".",",")}%). Se fossem para ${lv.nome}: ${fmt(lv.votos+outros)} (${pl.toFixed(2).replace(".",",")}%). ${pf>50?"Flávio passaria de 50%.":"Flávio não passaria de 50%."} ${pl>50?"Lula passaria de 50%.":"Lula não passaria de 50%."} ${lv.votos+outros>fv.votos?"Com o bloco inteiro, Lula passaria Flávio.":"Mesmo com o bloco inteiro, Lula não passaria Flávio."}</p>`;
+  fechou = true;
+}
 function candidatos(data){
   const out = [];
   const carg = (data.carg || [])[0];
@@ -561,6 +606,7 @@ async function mapa(){
   if (ultimo && cargoAtual.id === "pres") analise(ultimo, ultimaLista);
 }
 
+
 async function carregar(){
   const uf = cargoAtual.uf || ufAtual;
   const ele = cargoAtual.ele;
@@ -570,7 +616,7 @@ async function carregar(){
     const data = await getJSON(path);
     render(data);
     document.getElementById("lido").textContent = new Date().toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo"});
-    if (cargoAtual.id === "pres") mapa();
+    if (cargoAtual.id === "pres") { mapa(); analiseFechada(data); }
     else { const m = document.getElementById("mapwrap"); if (m) m.hidden = true; }
   } catch (e) {
     document.getElementById("erro").textContent = " Falha ao ler o TSE: " + e.message;
